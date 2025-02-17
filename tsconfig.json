@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+      "lib": ["ES2017","DOM"],
+      "target": "es2017",
+      "rootDir": "assets/ts",
+      "outDir": "assets/js",
+      "preserveWatchOutput": true,
+      "pretty": true,
+      "noImplicitReturns": true,
+      "noFallthroughCasesInSwitch": true,
+      "noImplicitAny": true,
+  },
+  "include": ["assets/ts/**/*"]
+}
