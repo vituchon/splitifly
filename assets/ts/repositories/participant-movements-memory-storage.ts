@@ -1,6 +1,6 @@
-import { EntitiesMemoryStorage } from './entity_memory_storage';
-import { EntitiesRepository, Identifiable } from './common';
-import { ParticipantMovement } from '../model/movement';
+import { EntitiesMemoryStorage } from './entity_memory_storage.js';
+import { EntitiesRepository, Identifiable } from './common.js';
+import { ParticipantMovement } from '../model/movement.js';
 
 
 export interface ParticipantMovementsRepository extends EntitiesRepository<ParticipantMovement> {
