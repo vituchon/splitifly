@@ -26,7 +26,7 @@
 
       <div id="add-participant-modal" class="modal">
         <div class="modal-content">
-          <h2>Agregar Participante</h2>
+          <h2>Agregar Participante 👥➕</h2>
           <div style="margin-bottom: 2em;">
             <input id="participant-name-input" type="text" placeholder="Ingresá el nombre del participante">
             <button id="add-participant-confirm-btn" class="color-button">OK</button>
@@ -120,7 +120,7 @@
           groupDiv.innerHTML = `
             <b>${group.name}</b>
             <div style="align-self: flex-start;">
-              <div>Movimientos</div>
+              <div>💸 Movimientos</div>
               <ol id="movements-list-${group.id}">
                 ${(group.movements || []).map(movement => `
                   <li>
@@ -131,20 +131,20 @@
                   </li>
                 `).join('')}
               </ol>
-              <button class="open-movement-modal-btn">Cargar Movimiento</button>
+              <button class="open-movement-modal-btn">Cargar Movimiento<br/>➕💸</button>
             </div>
             <div style="align-self: flex-start;">
-              <div>Participantes</div>
+              <div>👥 Participantes</div>
               <ul id="participant-list-${group.id}">
                 ${(group.participants || []).map(participant => `
                   <li>${participant.name}</li>
                   <button class="remove-participant-btn" data-participant-id="${participant.id}">❌</button>
                 `).join('')}
               </ul>
-              <button class="open-participant-modal-btn">Agregar Participante</button>
+              <button class="open-participant-modal-btn">Agregar Participante<br/>➕👥</button>
             </div>
             <div>
-              <button class="open-aggregated-balances-modal-btn">Calcular balances</button>
+              <button class="open-aggregated-balances-modal-btn">Calcular balances<br/>🧮</button>
             </div>
           `;
           groupDiv.dataset.groupId = group.id
@@ -209,14 +209,18 @@
       document.getElementById('add-participant-confirm-btn').addEventListener('click', async () => {
         const participantNameInput = document.getElementById('participant-name-input');
         const name = participantNameInput.value.trim();
-        try {
-          const groupId = +document.getElementById('add-participant-modal').dataset.groupId
-          await app.addParticipant(name, groupId)
-          participantNameInput.value = '';
-          toggleModal('add-participant-modal');
-          renderGroups(app.state);
-        } catch (error) {
-          alert(error)
+        if (name) {
+          try {
+            const groupId = +document.getElementById('add-participant-modal').dataset.groupId
+            await app.addParticipant(name, groupId)
+            participantNameInput.value = '';
+            toggleModal('add-participant-modal');
+            renderGroups(app.state);
+          } catch (error) {
+            alert(error)
+          }
+        } else {
+          alert('El nombre del participante no puede estar vacio');
         }
       });
 
@@ -392,8 +396,8 @@
       function closeMovementModal() {
         const list = document.getElementById('participant-movement-list');
         list.innerHTML = ""
-        const totalPriceInput = document.getElementById('movement-price-input');
-        totalPriceInput.value = ""
+        document.getElementById('movement-price-input').value = ""
+        document.getElementById('movement-concept-input').value = ""
         toggleModal('add-movement-modal');
         renderGroups(app.state);
       }
