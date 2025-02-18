@@ -1,4 +1,4 @@
-import { Identifiable, EntityNotExistsError } from './common';
+import { Identifiable, EntityNotExistsError } from './common.js';
 
 export class EntitiesMemoryStorage<E extends Identifiable> {
   protected entitiesById: Map<number, E>;
@@ -7,6 +7,17 @@ export class EntitiesMemoryStorage<E extends Identifiable> {
   constructor() {
     this.entitiesById = new Map<number, E>();
     this.idSequence = 0;
+  }
+
+  async load( entityById: {[id: number]: E }) {
+    if (!entityById || Object.keys(entityById).length === 0) {
+      return;
+    }
+    for (const [id, entity] of Object.entries(entityById)) {
+      this.entitiesById.set(Number(id), entity);
+    }
+    const maxId = Math.max(...Object.keys(entityById).map(Number), 0);
+    this.idSequence = maxId + 1;
   }
 
   async getAll(): Promise<E[]> {

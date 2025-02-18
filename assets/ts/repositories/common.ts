@@ -14,6 +14,7 @@ export interface Identifiable {
 }
 
 export interface EntitiesRepository<E extends Identifiable> {
+  load(entityById: { [id: number]: E }): void;
   getAll(): Promise<E[]>;
   getById(id: number): Promise<E>;
   save(entity: E): Promise<E>;
