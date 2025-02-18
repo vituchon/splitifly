@@ -9,6 +9,13 @@ body {
   background-color: #f4f4f9;
 }
 
+button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
 #group-list {
   width: 100%;
   max-width: 500px;
@@ -28,10 +35,6 @@ body {
 
 .group button {
   margin-left: 5px;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
 }
 
 #add-group-btn {
@@ -91,9 +94,6 @@ body {
   padding: 10px 20px;
   background: #007bff;
   color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
 }
 
 .modal-content .color-button.close {
