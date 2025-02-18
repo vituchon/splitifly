@@ -9,6 +9,7 @@ export class EntitiesMemoryStorage<E extends Identifiable> {
     this.idSequence = 0;
   }
 
+  // TODO: enhace method by allowing to pass Map<number, E> or E[] as well
   async load( entityById: {[id: number]: E }) {
     if (!entityById || Object.keys(entityById).length === 0) {
       return;
@@ -17,7 +18,7 @@ export class EntitiesMemoryStorage<E extends Identifiable> {
       this.entitiesById.set(Number(id), entity);
     }
     const maxId = Math.max(...Object.keys(entityById).map(Number), 0);
-    this.idSequence = maxId + 1;
+    this.idSequence = maxId
   }
 
   async getAll(): Promise<E[]> {
