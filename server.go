@@ -44,7 +44,11 @@ func buildRouter() *mux.Router {
 	router.NotFoundHandler = http.HandlerFunc(NoMatchingHandler)
 
 	fileServer := http.FileServer(http.Dir("./assets"))
-	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fileServer))
+	//router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fileServer))
+	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Serving static file:", r.URL.Path)
+		fileServer.ServeHTTP(w, r)
+	})))
 
 	// Rutas públicas con CORS
 	router.HandleFunc("/healthcheck", addCORS(Healthcheck)).Methods("GET", "OPTIONS")
