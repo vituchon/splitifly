@@ -17,9 +17,7 @@ interface State {
   }
 }
 
-console.log("init appState");
-
-const STORAGE_KEY = "splitifly-app-state";
+const STORAGE_KEY = "splitifly-local-storage";
 
 function loadState(): State {
   try {
@@ -113,6 +111,17 @@ export async function addParticipant(name: string, groupId: number) {
   }
 }
 
+export async function deleteParticipant(participantId: number) {
+  try {
+    await api.deleteParticipant(participantId);
+    delete state.participantById[participantId]
+  } catch (error) {
+    console.error('Error deleting participant:', error);
+    throw error;
+  }
+}
+
+
 export async function fetchMovements(groupId: number) {
   try {
     const movements = await api.getMovements(groupId);
@@ -138,6 +147,22 @@ export async function addMovement(movement: api.Movement) {
     return m
   } catch (error) {
     console.error('Error adding movement:', error);
+    throw error;
+  }
+}
+
+
+export async function deleteMovement(movementId: number) {
+  try {
+    await api.deleteMovement(movementId);
+    delete state.movementById[movementId]
+    for (const _movementId in state.participantMovementById) {
+      if (state.participantMovementById[_movementId].movementId === movementId) {
+        delete state.participantMovementById[_movementId];
+      }
+    }
+  } catch (error) {
+    console.error('Error deleting movement:', error);
     throw error;
   }
 }

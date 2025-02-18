@@ -41,17 +41,33 @@ export async function addParticipant(participant: Participant): Promise<ModelPar
     return participantsRepository.save(p);
 }
 
+export class ParticipantDeletionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ParticipantDeletionError";
+  }
+}
+
+export async function deleteParticipant(participantId: number): Promise<void> {
+  const pms = await participantMovementsRepository.getByParticipantId(participantId)
+  if (pms?.length > 0) {
+    throw new ParticipantDeletionError("Can not delete participant that has movements");
+  }
+  return await participantsRepository.delete(participantId);
+}
+
 export async function getParticipants(groupId: number): Promise<ModelParticipant[]> {
     return participantsRepository.getByGroupId(groupId);
 }
-
 
 export async function getMovements(groupId: number): Promise<ModelMovement[]> {
     return movementsRepository.getByGroupId(groupId);
 }
 
-export async function getParticipantMovements(movementId: number): Promise<ModelParticipantMovement[]> {
-    return participantMovementsRepository.getByMovementId(movementId);
+export async function deleteMovement(movementId: number): Promise<void> {
+  const pms = await participantMovementsRepository.getByMovementId(movementId)
+  pms.forEach(async (pm) => await participantMovementsRepository.delete(pm.id))
+  await movementsRepository.delete(movementId)
 }
 
 export interface ParticipantMovement {
@@ -136,4 +152,9 @@ export async function calculateBalance(groupId: number, movementId: number): Pro
 
     const balance = buildDebitCreditMap(participantMovements, shares);
     return [balance, shares];
+}
+
+
+export async function getParticipantMovements(movementId: number): Promise<ModelParticipantMovement[]> {
+  return participantMovementsRepository.getByMovementId(movementId);
 }
