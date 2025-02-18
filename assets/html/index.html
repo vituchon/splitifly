@@ -8,7 +8,9 @@
       <script src="/assets/js/app/app.js" type="module"></script>
     </head>
     <body>
-      <h1>Splitifly</h1>
+      <div>
+        <h1 style="text-align: center;">Splitifly 💸<br/><span style="font-size: 0.5em;">Divisiones más sencillas, amistades más felices</span></h1>
+      </div>
       <div id="group-list"></div>
 
       <button id="add-group-btn">+</button>
@@ -26,7 +28,7 @@
 
       <div id="add-participant-modal" class="modal">
         <div class="modal-content">
-          <h2>Agregar Participante 👥➕</h2>
+          <h2>Agregar Participante</h2>
           <div style="margin-bottom: 2em;">
             <input id="participant-name-input" type="text" placeholder="Ingresá el nombre del participante">
             <button id="add-participant-confirm-btn" class="color-button">OK</button>
@@ -120,7 +122,7 @@
           groupDiv.innerHTML = `
             <b>${group.name}</b>
             <div style="align-self: flex-start;">
-              <div>💸 Movimientos</div>
+              <div>💰 Movimientos</div>
               <ol id="movements-list-${group.id}">
                 ${(group.movements || []).map(movement => `
                   <li>
@@ -131,7 +133,7 @@
                   </li>
                 `).join('')}
               </ol>
-              <button class="open-movement-modal-btn">Cargar Movimiento<br/>➕💸</button>
+              <button class="open-movement-modal-btn">Cargar Movimiento<br/>➕💰</button>
             </div>
             <div style="align-self: flex-start;">
               <div>👥 Participantes</div>
