@@ -64,7 +64,7 @@ body {
   align-items: center;
   visibility: hidden;
   opacity: 0;
-  transition: visibility 0s, opacity 0.3s;
+  transition: visibility 0.3s, opacity 0.3s;
 }
 
 .modal.active {
@@ -83,12 +83,11 @@ body {
 
 .modal-content input {
   padding: 10px;
-  margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
-.modal-content button {
+.modal-content .color-button {
   padding: 10px 20px;
   background: #007bff;
   color: white;
@@ -97,7 +96,7 @@ body {
   cursor: pointer;
 }
 
-.modal-content button.close {
+.modal-content .color-button.close {
   background: #ccc;
 }
 
