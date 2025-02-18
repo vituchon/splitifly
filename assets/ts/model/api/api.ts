@@ -1,17 +1,17 @@
-import { Group, Participant } from '../group';
-import { Movement, ParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsEqualShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares } from '../movement';
-import { Price } from '../price';
-import { EntitiesRepository } from '../../repositories/common';
-import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage';
-import { MovementsRepository, MovementsMemoryRepository } from '../../repositories/movements_memory_storage';
-import { ParticipantMovementsRepository, ParticipantMovementsMemoryRepository } from '../../repositories/participant-movements-memory-storage';
-import { EntitiesMemoryStorage } from '../../repositories/entity_memory_storage';
+import { Group, Participant as ModelParticipant} from '../group.js';
+import { Movement as ModelMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsEqualShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares } from '../movement.js';
+import { Price } from '../price.js';
+import { EntitiesRepository } from '../../repositories/common.js';
+import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage.js';
+import { MovementsRepository, MovementsMemoryRepository } from '../../repositories/movements_memory_storage.js';
+import { ParticipantMovementsRepository, ParticipantMovementsMemoryRepository } from '../../repositories/participant-movements-memory-storage.js';
+import { EntitiesMemoryStorage } from '../../repositories/entity_memory_storage.js';
 
 // Repository instances
-const groupsRepository: EntitiesRepository<Group> = new EntitiesMemoryStorage<Group>();
-const participantsRepository: ParticipantsRepository = new ParticipantsMemoryRepository();
-const movementsRepository: MovementsRepository = new MovementsMemoryRepository();
-const participantMovementsRepository: ParticipantMovementsRepository = new ParticipantMovementsMemoryRepository();
+export const groupsRepository: EntitiesRepository<Group> = new EntitiesMemoryStorage<Group>();
+export const participantsRepository: ParticipantsRepository = new ParticipantsMemoryRepository();
+export const movementsRepository: MovementsRepository = new MovementsMemoryRepository();
+export const participantMovementsRepository: ParticipantMovementsRepository = new ParticipantMovementsMemoryRepository();
 
 export async function createGroup(name: string): Promise<Group> {
     const group: Group = {
@@ -25,15 +25,15 @@ export async function getAllGroups(): Promise<Group[]> {
     return groupsRepository.getAll();
 }
 
-interface ParticipantInput {
+export interface Participant {
     groupId: number;
     name: string;
 }
 
-export async function addParticipant(participant: ParticipantInput): Promise<Participant> {
+export async function addParticipant(participant: Participant): Promise<ModelParticipant> {
     await groupsRepository.getById(participant.groupId); // Will throw if group doesn't exist
 
-    const p: Participant = {
+    const p: ModelParticipant = {
         id: 0,
         groupId: participant.groupId,
         name: participant.name
@@ -41,31 +41,32 @@ export async function addParticipant(participant: ParticipantInput): Promise<Par
     return participantsRepository.save(p);
 }
 
-export async function getParticipants(groupId: number): Promise<Participant[]> {
+export async function getParticipants(groupId: number): Promise<ModelParticipant[]> {
     return participantsRepository.getByGroupId(groupId);
 }
 
-interface ParticipantMovementInput {
-    participantId: number;
-    amount: Price;
-}
 
-interface MovementInput {
-    groupId: number;
-    amount: Price;
-    concept: string;
-    participantMovements: ParticipantMovementInput[];
-}
-
-export async function getMovements(groupId: number): Promise<Movement[]> {
+export async function getMovements(groupId: number): Promise<ModelMovement[]> {
     return movementsRepository.getByGroupId(groupId);
 }
 
-export async function getParticipantMovements(movementId: number): Promise<ParticipantMovement[]> {
+export async function getParticipantMovements(movementId: number): Promise<ModelParticipantMovement[]> {
     return participantMovementsRepository.getByMovementId(movementId);
 }
 
-export async function addMovement(movement: MovementInput): Promise<[Movement, ParticipantMovement[]]> {
+export interface ParticipantMovement {
+  participantId: number;
+  amount: Price;
+}
+
+export interface Movement {
+  groupId: number;
+  amount: Price;
+  concept: string;
+  participantMovements: ParticipantMovement[];
+}
+
+export async function addMovement(movement: Movement): Promise<[ModelMovement, ModelParticipantMovement[]]> {
     await groupsRepository.getById(movement.groupId);
 
     for (const participantMovement of movement.participantMovements) {
@@ -75,7 +76,7 @@ export async function addMovement(movement: MovementInput): Promise<[Movement, P
         }
     }
 
-    const m: Movement = {
+    const m: ModelMovement = {
         id: 0,
         groupId: movement.groupId,
         amount: movement.amount,
@@ -85,9 +86,9 @@ export async function addMovement(movement: MovementInput): Promise<[Movement, P
 
     const savedMovement = await movementsRepository.save(m);
 
-    const pms: ParticipantMovement[] = [];
+    const pms: ModelParticipantMovement[] = [];
     for (const participantMovement of movement.participantMovements) {
-        const pm: ParticipantMovement = {
+        const pm: ModelParticipantMovement = {
             id: 0,
             movementId: savedMovement.id,
             participantId: participantMovement.participantId,
