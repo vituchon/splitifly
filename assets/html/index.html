@@ -15,45 +15,50 @@
 
       <div id="add-group-modal" class="modal">
         <div class="modal-content">
-          <h2>Add Group</h2>
-          <input id="group-name-input" type="text" placeholder="Enter group name">
-          <button id="add-group-confirm-btn">OK</button>
-          <button class="close">Cancel</button>
+          <h2>Agregar Grupo</h2>
+          <div style="margin-bottom: 2em;">
+            <input id="group-name-input" type="text" placeholder="Ingresá el nombre del grupo">
+            <button id="add-group-confirm-btn" class="color-button">OK</button>
+            <button class="color-button close">Cancel</button>
+          </div>
         </div>
       </div>
 
       <div id="add-participant-modal" class="modal">
         <div class="modal-content">
-          <h2>Add Participant</h2>
-          <input id="participant-name-input" type="text" placeholder="Enter participant name">
-          <button id="add-participant-confirm-btn">OK</button>
-          <button class="close">Cancel</button>
+          <h2>Agregar Participante</h2>
+          <div style="margin-bottom: 2em;">
+            <input id="participant-name-input" type="text" placeholder="Ingresá el nombre del participante">
+            <button id="add-participant-confirm-btn" class="color-button">OK</button>
+            <button class="color-button close">Cancel</button>
+          </div>
         </div>
       </div>
 
       <div id="add-movement-modal" class="modal">
         <div class="modal-content">
-          <h2>Add Movement</h2>
+          <h2>Agregar Movimiento</h2>
           <div class="vertical-layout">
-            <input id="movement-concept-input" type="text" placeholder="Enter movement concept">
-            <input id="movement-price-input" type="number" disabled>
+            <input id="movement-concept-input" type="text" placeholder="Ingresá el concepto del movimiento">
+            <input id="movement-price-input" type="number" disabled placeholder="Monto total">
 
-            <div id="participant-movement-list" class="vertical-layout">
+            <div id="participant-movement-list" class="vertical-layout" style="margin-bottom: 1em;">
             </div>
 
-            <div class="horizontal-layout">
+            <div class="horizontal-layout" style="margin-bottom: 1em;">
               <select id="participant-movement-selector">
-                <option></option>
               </select>
-              <span>:&nbsp;</span>
-              <input id="participant-movement-price-input" type="number" placeholder="Enter participant contribution">
-              <button id="add-participant-movement-confirm-btn">Agregar</button>
+              <span>&nbsp;</span>
+              <input id="participant-movement-price-input" type="number" placeholder="Contribución...">
+              <span style="flex-grow: 2;"></span>
+              <button id="add-participant-movement-confirm-btn" class="color-button">Agregar</button>
             </div>
 
-            <div class="horizontal-layout">
+            <div class="horizontal-layout" style="margin-bottom: 2em;">
               <div style="flex-grow: 2;"></div>
-              <button id="add-movement-confirm-btn">OK</button>
-              <button class="close">Cancel</button>
+              <button id="add-movement-confirm-btn" class="color-button">OK</button>
+              &nbsp;
+              <button class="color-button close">Cancel</button>
             </div>
           </div>
         </div>
@@ -72,7 +77,7 @@
           </table>
 
           <h2>Balance total</h2>
-          <table id="shares-table" border="1">
+          <table id="shares-table" border="1" style="margin-bottom: 2em;">
             <thead>
               <tr>
                 <th>Participante</th>
@@ -81,12 +86,13 @@
             </thead>
             <tbody id="shares-body"></tbody>
           </table>
-          <button class="close">Cerrar</button>
+          <button class="color-button close">Cerrar</button>
         </div>
       </div>
     </body>
     <script type="module">
       import * as app from "/assets/js/app/app.js";
+      import * as api from "/assets/js/model/api/api.js";
 
       async function renderGroups(appState) {
         const groupList = document.getElementById('group-list');
@@ -106,29 +112,39 @@
                 }
                 return acc + participantString;
               }, '');
-              movementDetailsByMovementId[movement.id] = details;
+              movementDetailsByMovementId[movement.id] = details
             })
           );
           const groupDiv = document.createElement('div');
           groupDiv.className = 'group';
           groupDiv.innerHTML = `
             <b>${group.name}</b>
-            <div>
+            <div style="align-self: flex-start;">
               <div>Movimientos</div>
               <ol id="movements-list-${group.id}">
-                ${(group.movements || []).map(movement => `<li><span style="color: grey;">${formatUnixTimestamp(movement.createdAt)}</span><br/><b style="color: blue;">${movement.concept}</b>: $${movement.amount}<br/>${movementDetailsByMovementId[movement.id]}</li>`).join('')}
+                ${(group.movements || []).map(movement => `
+                  <li>
+                    <span style="color: grey;">${formatUnixTimestamp(movement.createdAt)}</span><br/>
+                    <b style="color: blue;">${movement.concept}</b>: $${movement.amount}<br/>
+                    ${movementDetailsByMovementId[movement.id]}
+                    <button class="remove-movement-btn" data-movement-id="${movement.id}">❌</button>
+                  </li>
+                `).join('')}
               </ol>
-              <button class="openMovementModalBtn">Cargar Movimiento</button>
+              <button class="open-movement-modal-btn">Cargar Movimiento</button>
             </div>
-            <div>
+            <div style="align-self: flex-start;">
               <div>Participantes</div>
               <ul id="participant-list-${group.id}">
-                ${(group.participants || []).map(participant => `<li>${participant.name}</li>`).join('')}
+                ${(group.participants || []).map(participant => `
+                  <li>${participant.name}</li>
+                  <button class="remove-participant-btn" data-participant-id="${participant.id}">❌</button>
+                `).join('')}
               </ul>
-              <button class="openParticipantModalBtn">Agregar Participante</button>
+              <button class="open-participant-modal-btn">Agregar Participante</button>
             </div>
             <div>
-              <button class="openAggregatedBalancesModalBtn">Calcular balances</button>
+              <button class="open-aggregated-balances-modal-btn">Calcular balances</button>
             </div>
           `;
           groupDiv.dataset.groupId = group.id
@@ -194,8 +210,8 @@
         const participantNameInput = document.getElementById('participant-name-input');
         const name = participantNameInput.value.trim();
         try {
-          const groupId = document.getElementById('add-participant-modal').dataset.groupId
-          await app.addParticipant(name, +groupId)
+          const groupId = +document.getElementById('add-participant-modal').dataset.groupId
+          await app.addParticipant(name, groupId)
           participantNameInput.value = '';
           toggleModal('add-participant-modal');
           renderGroups(app.state);
@@ -212,28 +228,64 @@
 
       // Delegación de eventos: el contenedor maneja los clicks de los botones hijos
       document.getElementById("group-list").addEventListener("click", (event) => {
-        if (event.target.matches(".openParticipantModalBtn")) {
+        if (event.target.matches(".open-participant-modal-btn")) {
           const groupElement = event.target.closest(".group")
-          const groupId = groupElement.dataset.groupId
-          openParticipantModal(+groupId);
+          const groupId = +groupElement.dataset.groupId
+          openParticipantModal(groupId);
           event.preventDefault();
           event.stopPropagation()
         }
-        if (event.target.matches(".openMovementModalBtn")) {
+        if (event.target.matches(".open-movement-modal-btn")) {
           const groupElement = event.target.closest(".group")
-          const groupId = groupElement.dataset.groupId
-          openMovementModal(+groupId, app.state);
+          const groupId = +groupElement.dataset.groupId
+          openMovementModal(groupId, app.state);
           event.preventDefault();
           event.stopPropagation()
         }
-        if (event.target.matches(".openAggregatedBalancesModalBtn")) {
+        if (event.target.matches(".open-aggregated-balances-modal-btn")) {
           const groupElement = event.target.closest(".group")
-          const groupId = groupElement.dataset.groupId
-          openAggregatedBalancesModal(+groupId, app.state)
+          const groupId = +groupElement.dataset.groupId
+          openAggregatedBalancesModal(groupId, app.state)
+          event.preventDefault();
+          event.stopPropagation()
+        }
+        if (event.target.matches(".remove-movement-btn")) {
+          const movementId = +event.target.dataset.movementId
+          deleteMovement(movementId)
+          event.preventDefault();
+          event.stopPropagation()
+        }
+        if (event.target.matches(".remove-participant-btn")) {
+          const participantId = +event.target.dataset.participantId
+          deleteParticipant(participantId)
           event.preventDefault();
           event.stopPropagation()
         }
       });
+
+      async function deleteParticipant(participantId) {
+        try {
+          await app.deleteParticipant(participantId);
+          renderGroups(app.state);
+          console.log('Participant deleted successfully:', movementId);
+        } catch (error) {
+          if (error instanceof api.ParticipantDeletionError) {
+            alert("No se puede eliminar el participante porque tiene movimientos asociados.\nPrimero eliminá los movimientos en los que está involucrado.");
+          } else {
+            console.error("Error deleting participant:", error);
+          }
+        }
+      }
+
+      async function deleteMovement(movementId) {
+        try {
+          await app.deleteMovement(movementId);
+          renderGroups(app.state);
+          console.log('Movement deleted successfully:', movementId);
+        } catch (error) {
+          console.error('Error deleting movement:', error);
+        }
+      }
 
       document.getElementById('add-movement-confirm-btn').addEventListener('click', async () => {
         const modal = document.getElementById('add-movement-modal');
@@ -284,7 +336,7 @@
         modal.__group = group
         modal.__selectedParticipants = {};
         const select = document.getElementById('participant-movement-selector');
-        select.innerHTML = '';
+        select.innerHTML = `<option value="">Participante...</option>`;
         (group.participants || []).forEach(participant => {
           addParticipantToSelect(select, participant);
         });
@@ -305,7 +357,7 @@
 
         const participantId = select.value;
         if (!participantId || !priceInput.value) {
-          alert('Por favor, selecciona un participante y especifica una contribución.');
+          alert('Por favor, seleccioná un participante y especificá una contribución.');
           return;
         }
 
@@ -314,6 +366,7 @@
         modal.__selectedParticipants[participantId] = { id: participantId, name: participantName, price: price };
         const listItem = document.createElement('div');
         listItem.className = 'horizontal-layout';
+        listItem.style = "align-items: center;"
         listItem.dataset.participantId = participantId;
         listItem.dataset.price = price;
         listItem.innerHTML = `
@@ -346,7 +399,7 @@
       }
 
       async function openAggregatedBalancesModal(groupId, appState) {
-        const aggregatedBalance = await app.requestAggregatedBalances(+groupId)
+        const aggregatedBalance = await app.requestAggregatedBalances(groupId)
 
         const balance = aggregatedBalance.balance;
         const shares = aggregatedBalance.shares;
