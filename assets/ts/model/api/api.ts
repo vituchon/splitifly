@@ -13,6 +13,7 @@ export const participantsRepository: ParticipantsRepository = new ParticipantsMe
 export const movementsRepository: MovementsRepository = new MovementsMemoryRepository();
 export const participantMovementsRepository: ParticipantMovementsRepository = new ParticipantMovementsMemoryRepository();
 
+// perhaps api could be an interface and NativeBrowserApi a class!
 export async function createGroup(name: string): Promise<Group> {
     const group: Group = {
         id: 0,
@@ -23,6 +24,20 @@ export async function createGroup(name: string): Promise<Group> {
 
 export async function getAllGroups(): Promise<Group[]> {
     return groupsRepository.getAll();
+}
+
+export async function deleteGroup(groupId: number)  {
+  const movements = await movementsRepository.getByGroupId(groupId)
+  movements.forEach( async (movement) => {
+    const pms = await participantMovementsRepository.getByMovementId(movement.id)
+    pms.forEach(async (pm) => await participantMovementsRepository.delete(pm.id))
+    await movementsRepository.delete(movement.id)
+  })
+  const participants = await participantsRepository.getByGroupId(groupId);
+  participants.forEach(async (participant) => {
+    await participantsRepository.delete(participant.id)
+  })
+  await groupsRepository.delete(groupId)
 }
 
 export interface Participant {
