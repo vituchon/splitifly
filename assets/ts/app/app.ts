@@ -86,6 +86,38 @@ export async function createGroup(name: string) {
   }
 }
 
+export async function deleteGroup(groupId: number) {
+  try {
+    const groupMovements = Object.entries(state.movementById).filter(([id, movement]) => movement.groupId === groupId)
+    for (const [movementId, movement] of groupMovements) {
+      for (const [participantMovementId, participantMovement] of Object.entries(state.participantMovementById)) {
+        if (participantMovement.movementId === movement.id) {
+          delete state.participantMovementById[participantMovement.id]
+          console.log("deleted participant's movement:", participantMovement)
+        }
+      }
+      if (movement.groupId === groupId) {
+        delete state.movementById[movement.id]
+        console.log("deleted movement:", movement)
+      }
+    }
+    const groupParticipants = Object.entries(state.participantById).filter(([id, participant]) => participant.groupId === groupId)
+    for (const [participantId, participant] of groupParticipants) {
+      delete state.participantById[participant.id]
+      console.log("deleted participant:", participant)
+    }
+    const group = state.groupById[groupId]
+    delete state.groupById[groupId]
+    console.log("deleted group:", group)
+
+    await api.deleteGroup(groupId);
+  } catch (error) {
+    console.error('Error deleting group:', error);
+    throw error;
+  }
+}
+
+
 export async function fetchParticipants(groupId: number) {
   try {
     const participants = await api.getParticipants(groupId);
@@ -120,7 +152,6 @@ export async function deleteParticipant(participantId: number) {
     throw error;
   }
 }
-
 
 export async function fetchMovements(groupId: number) {
   try {
@@ -190,3 +221,21 @@ export async function requestAggregatedBalances(groupId: number, appState: State
     throw error;
   }
 }
+
+
+/**
+ *  caso para probar...
+ *
+ * Balance entre participantes
+Participante	1	2	3
+1	X	0	3
+2	0	X	0
+3	3	3	X
+Balance total
+Participante	Balance
+1	0
+2	3
+3	-3
+
+ * {"groupById":{"1":{"id":1,"name":"a","participants":[{"id":2,"groupId":1,"name":"1"},{"id":3,"groupId":1,"name":"2"},{"id":4,"groupId":1,"name":"3"}],"movements":[{"id":1,"groupId":1,"amount":2,"createdAt":1739993805,"concept":"almuerzo"}]}},"participantById":{"2":{"id":2,"groupId":1,"name":"1"},"3":{"id":3,"groupId":1,"name":"2"},"4":{"id":4,"groupId":1,"name":"3"}},"movementById":{"1":{"id":1,"groupId":1,"amount":2,"createdAt":1739993805,"concept":"almuerzo"}},"participantMovementById":{"1":{"id":1,"movementId":1,"participantId":2,"amount":1},"2":{"id":2,"movementId":1,"participantId":3,"amount":1},"3":{"id":3,"movementId":1,"participantId":4,"amount":0}}}
+ */
