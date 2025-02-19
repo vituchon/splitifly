@@ -162,7 +162,12 @@
       async function renderGroups(appState) {
         const groupList = document.getElementById('group-list');
         groupList.innerHTML = '';
-        const groups = Object.values(appState.groupById).map(group => structuredClone(group));
+        const groups = Object.values(appState.groupById).map(group => {
+          return {
+            id: group.id,
+            name: group.name
+          }
+        }); // dev notes: The map creates a copy since the group object is modified below  (note how the participants and movements properties are defined)
         (groups || []).forEach(async group => {
           group.participants = await app.fetchParticipants(group.id)
           group.movements = await app.fetchMovements(group.id)
@@ -377,7 +382,6 @@
 
       document.getElementById('add-movement-confirm-btn').addEventListener('click', async () => {
         const modal = document.getElementById('add-movement-modal');
-        const group = modal.__group;
         const concept = document.getElementById('movement-concept-input').value;
         const totalAmount = +(document.getElementById('movement-price-input').value);
         const items = document.getElementById('participant-movement-list').children;
@@ -418,14 +422,13 @@
         toggleModal('add-movement-modal');
       }
 
-      function setupParticipantMovementModal(groupId, appState) {
+      async function setupParticipantMovementModal(groupId, appState) {
         const modal = document.getElementById('add-movement-modal');
-        const group = appState.groupById[groupId];
-        modal.__group = group
         modal.__selectedParticipants = {};
         const select = document.getElementById('participant-movement-selector');
         select.innerHTML = `<option value="">Participante...</option>`;
-        (group.participants || []).forEach(participant => {
+        const participants = await app.fetchParticipants(groupId);
+        (participants || []).forEach(participant => {
           addParticipantToSelect(select, participant);
         });
       }
