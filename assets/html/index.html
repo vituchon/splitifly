@@ -4,12 +4,74 @@
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Splitifly</title>
+      <link rel="icon" type="image/x-icon" href="https://fonts.gstatic.com/s/e/notoemoji/15.1/1f4b8/512.png=s60">
       <link href="/assets/css/main.css" rel="stylesheet" >
       <script src="/assets/js/app/app.js" type="module"></script>
     </head>
     <body>
+      <style>
+        #about-button-container  {
+          position: fixed;
+          z-index: 1000;
+        }
+
+        #about-button {
+          background: linear-gradient(135deg, #3498db, #2980b9);
+          color: white;
+          font-size: 12px;
+          padding: 8px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: transform 0.2s, box-shadow 0.2s;
+          box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #about-button:hover {
+          transform: scale(1.05);
+          box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #about-button-container {
+          top: 10px;
+          right: 10px;
+        }
+      </style>
+      <div id="about-button-container">
+        <button id="about-button" style="color: transparent;  text-shadow: 0 0 0 white;">❔</button>
+      </div>
+      <dialog id="about-dialog" style="max-width: 75%;"></dialog>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const aboutDialog = document.getElementById('about-dialog');
+          const openAboutDialogButton = document.getElementById('about-button');
+
+          openAboutDialogButton.addEventListener('click', async () => {
+            try {
+
+              const response = await fetch('/assets/html/about.html');
+              if (!response.ok) {
+                throw new Error('Error al cargar el contenido');
+              }
+
+              const content = await response.text();
+              aboutDialog.innerHTML = content;
+              aboutDialog.showModal();
+              aboutDialog.scrollTop = 0;
+            } catch (error) {
+              console.error('Error:', error);
+              alert('No se pudo cargar el contenido del diálogo.');
+            }
+          });
+
+          aboutDialog.addEventListener('close', () => {
+            console.log('Diálogo cerrado');
+          });
+        });
+      </script>
+
       <div>
-        <h1 style="text-align: center;">Splitifly 💸<br/><span style="font-size: 0.5em;">Divisiones más sencillas, amistades más felices</span></h1>
+        <h1 style="text-align: center;">Splitifly 💸🤝<br/><span style="font-size: 0.5em;">Divisiones más sencillas, amistades más felices</span></h1>
       </div>
       <div id="group-list"></div>
 
@@ -88,6 +150,7 @@
             </thead>
             <tbody id="shares-body"></tbody>
           </table>
+          <h3 id="balanced-title" style="color: yellow; background-color: black;">¡El grupo está balanceado!<br/><span style="font-size: 0.8em;">Las cuentas están saldadas ⚖️🙆🏿</span></h3>
           <button class="color-button close">Cerrar</button>
         </div>
       </div>
@@ -127,7 +190,7 @@
                 ${(group.movements || []).map(movement => `
                   <li>
                     <span style="color: grey;">${formatUnixTimestamp(movement.createdAt)}</span><br/>
-                    <b style="color: blue;">${movement.concept}</b>: $${movement.amount}<br/>
+                    <b style="color: blue;">${movement.concept}</b> -> $${movement.amount}<br/>
                     ${movementDetailsByMovementId[movement.id]}
                     <button class="remove-movement-btn" data-movement-id="${movement.id}">❌</button>
                   </li>
@@ -139,14 +202,16 @@
               <div>👥 Participantes</div>
               <ul id="participant-list-${group.id}">
                 ${(group.participants || []).map(participant => `
-                  <li>${participant.name}</li>
-                  <button class="remove-participant-btn" data-participant-id="${participant.id}">❌</button>
+                  <li>
+                    <span>${participant.name}</span>
+                    <button class="remove-participant-btn" data-participant-id="${participant.id}">❌</button>
+                  </li>
                 `).join('')}
               </ul>
               <button class="open-participant-modal-btn">Agregar Participante<br/>➕👥</button>
             </div>
             <div>
-              <button class="open-aggregated-balances-modal-btn">Calcular balances<br/>🧮</button>
+              <button class="open-aggregated-balances-modal-btn">Calcular balances<br/>🧮📊</button>
             </div>
           `;
           groupDiv.dataset.groupId = group.id
@@ -434,10 +499,15 @@
         });
 
         const sharesBody = document.getElementById('shares-body');
-        sharesBody.innerHTML = Array.from(shares.entries())
+        const sharesArray = Array.from(shares.entries())
+        sharesBody.innerHTML = Array.from(sharesArray)
           .map(([participantId, amount]) => `<tr><td>${appState.participantById[participantId].name}</td><td>${amount}</td></tr>`)
           .join('');
 
+        const isGroupSettled = sharesArray.reduce((acc, [participantId, amount]) => {
+          return acc && amount === 0
+        }, true)
+        document.getElementById("balanced-title").style.display = (isGroupSettled) ? "block" : "none"
         toggleModal("display-aggregated-balance-modal")
       }
 

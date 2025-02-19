@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acerca de</title>
+  <style>
+
+  #about-dialog section {
+    max-width: 600px;
+    margin: auto;
+    color: #333;
+  }
+
+  .vertical-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #logo-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+  }
+  .square {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 50px;
+    top: 50px;
+    background-color: black;
+    animation-duration: 1.5s;
+    animation-timing-function: ease;
+    animation-fill-mode: forwards;
+    border-radius: 7px;
+  }
+  .up {
+    animation-name: move-up;
+  }
+  .left {
+    animation-name: move-left;
+  }
+  .down {
+    animation-name: move-down;
+  }
+  .right {
+    animation-name: move-right;
+  }
+  @keyframes move-up {
+    100% {
+      transform: translateY(45px);
+      background-color: #51ca51;
+    }
+  }
+  @keyframes move-left {
+    100% {
+      transform: translateX(45px);
+      background-color: #5151ca;
+    }
+  }
+  @keyframes move-down {
+    100% {
+      transform: translateY(-45px);
+      background-color: #ca5151;
+    }
+  }
+  @keyframes move-right {
+    100% {
+      transform: translateX(-45px);
+      background-color: #caca51;
+    }
+  }
+  </style>
+</head>
+<body id="about">
+  <div class="vertical-center">
+    <h2>Acerca de Splitifly 💸🤝<br/><span style="font-size: 0.5em;">La vitu cash app que estabas esperando!</span></h2>
+    <div id="logo-container">
+      <div class="square up"></div>
+      <div class="square left"></div>
+      <div class="square down"></div>
+      <div class="square right"></div>
+    </div>
+
+    <section style="text-align: center;">
+      <p style="font-size: 1.1em;">
+        Ufff, ¡qué complicado es dividir los gastos cuando se comparten con un grupo de seres monetarios! 💰🤯<br/>
+      </p>
+      <p style="font-size: 1.1em;">
+        💡 <strong>Splitifly</strong> nació del seno de esa necesidad: <strong>hacer las cuentas</strong>.
+      </p>
+      <p style="font-size: 1.1em;">
+        🏆 <strong>Adios a los cálculos manuales y chau chau a toda la burocrácia papelística</strong>: esto organiza y hace todo por vos.
+      </p>
+      <p style="font-size: 1.1em;">
+        🚀 <strong>Calculá en nanosegundos</strong>: gracias al poder de cómputo de los dispositivos de vanguardia.
+      </p>
+      <p style="margin-top: 20px; font-size: 1.2em;">
+        <a href="#" onclick="document.getElementById('help').style.display = 'table';this.style.display = 'none';">Todo muy lindo vitu... pero como carajo se usa??</a>
+      </p>
+    </section>
+    <section id="help" style="display: none;">
+      <p>Dale vagoneta no es tán difícil... nomás seguí estos pasos:
+        <ol>
+          <li>Crea un grupo con el botón de abajo a la derecha</li>
+          <li>➕👥 Luego agrega participantes con el botón de agregar participante. Necesitas <b>dos</b> participantes al menos para agregar movimientos</li>
+          <li>➕💰 Luego agrega gastos con el botón de agregar movimiento (próximamente se incluirán transferencias entre participantes)</li>
+          <li>🧮📊 Calculá el balance final y la matriz de deudas para ver quién le debe a quién y cuánto.</li>
+        </ol>
+      </p>
+      <p>
+        👁️⚠️ Little disclaimer: Esta app usa el <a href="https://developer.mozilla.org/es/docs/Web/API/Window/localStorage">local storage</a> del navegador como subsistema de persistencia subyacente. Las bonbades del mismo no permiten que se registren ad infinitum datos, así que ojota. Mas o menos se guardan hasta 5MB, lo que debería alcanzar para dos o tres grupos.
+      </p>
+    </section>
+    <h2><a href="https://github.com/vituchon/splitifly">Código@github  <img style="vertical-align: middle;" src="/assets/images/worker.jpeg"></a></h2>
+    <button onclick="document.getElementById('about-dialog').close()">Cerrar</button>
+  </div>
+</body>
+</html>
