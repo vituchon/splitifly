@@ -162,7 +162,7 @@
       async function renderGroups(appState) {
         const groupList = document.getElementById('group-list');
         groupList.innerHTML = '';
-        const groups = Object.values(appState.groupById);
+        const groups = Object.values(appState.groupById).map(group => structuredClone(group));
         (groups || []).forEach(async group => {
           group.participants = await app.fetchParticipants(group.id)
           group.movements = await app.fetchMovements(group.id)
@@ -184,6 +184,7 @@
           groupDiv.className = 'group';
           groupDiv.innerHTML = `
             <b>${group.name}</b>
+            <button class="remove-group-btn" data-group-id="${group.id}">❌</button>
             <div style="align-self: flex-start;">
               <div>💰 Movimientos</div>
               <ol id="movements-list-${group.id}">
@@ -320,6 +321,12 @@
           event.preventDefault();
           event.stopPropagation()
         }
+        if (event.target.matches(".remove-group-btn")) {
+          const groupId = +event.target.dataset.groupId
+          deleteGroup(groupId)
+          event.preventDefault();
+          event.stopPropagation()
+        }
         if (event.target.matches(".remove-movement-btn")) {
           const movementId = +event.target.dataset.movementId
           deleteMovement(movementId)
@@ -333,6 +340,16 @@
           event.stopPropagation()
         }
       });
+
+      async function deleteGroup(groupId) {
+        try {
+          await app.deleteGroup(groupId)
+          renderGroups(app.state);
+          console.log('Group deleted successfully:', groupId);
+        } catch (error) {
+          console.error("Error deleting group:", error);
+        }
+      }
 
       async function deleteParticipant(participantId) {
         try {
