@@ -297,12 +297,6 @@
         }
       });
 
-      function openParticipantModal(groupId) {
-        const modal = document.getElementById('add-participant-modal');
-        modal.dataset.groupId = groupId;
-        toggleModal('add-participant-modal');
-      }
-
       // Delegación de eventos: el contenedor maneja los clicks de los botones hijos
       document.getElementById("group-list").addEventListener("click", (event) => {
         if (event.target.matches(".open-participant-modal-btn")) {
@@ -399,8 +393,9 @@
             amount: amount
           });
         }
+        const groupId = +modal.dataset.groupId
         const movement = {
-          groupId: group.id,
+          groupId: groupId,
           amount: totalAmount,
           concept: concept,
           participantMovements: participantMovements
@@ -416,8 +411,15 @@
         closeMovementModal()
       });
 
+      function openParticipantModal(groupId) {
+        const modal = document.getElementById('add-participant-modal');
+        modal.dataset.groupId = groupId;
+        toggleModal('add-participant-modal');
+      }
 
       function openMovementModal(groupId, appState) {
+        const modal = document.getElementById('add-movement-modal');
+        modal.dataset.groupId = groupId;
         setupParticipantMovementModal(groupId, appState);
         toggleModal('add-movement-modal');
       }
