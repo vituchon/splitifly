@@ -81,7 +81,7 @@
         <div class="modal-content">
           <h2>Agregar Grupo</h2>
           <div style="margin-bottom: 2em;">
-            <input id="group-name-input" type="text" placeholder="Ingresá el nombre del grupo">
+            <input id="group-name-input" type="text" placeholder="Nombre del grupo">
             <button id="add-group-confirm-btn" class="color-button">OK</button>
             <button class="color-button close">Cancel</button>
           </div>
@@ -92,7 +92,7 @@
         <div class="modal-content">
           <h2>Agregar Participante</h2>
           <div style="margin-bottom: 2em;">
-            <input id="participant-name-input" type="text" placeholder="Ingresá el nombre del participante">
+            <input id="participant-name-input" type="text" placeholder="Nombre del participante">
             <button id="add-participant-confirm-btn" class="color-button">OK</button>
             <button class="color-button close">Cancel</button>
           </div>
@@ -103,8 +103,8 @@
         <div class="modal-content">
           <h2>Agregar Movimiento</h2>
           <div class="vertical-layout">
-            <input id="movement-concept-input" type="text" placeholder="Ingresá el concepto del movimiento">
-            <input id="movement-price-input" type="number" disabled placeholder="Monto total">
+            <input id="movement-concept-input" style="width: auto;" type="text" placeholder="Concepto del movimiento">
+            <input id="movement-price-input" style="width: auto;" type="number" disabled placeholder="Monto total">
 
             <div id="participant-movement-list" class="vertical-layout" style="margin-bottom: 1em;">
             </div>
@@ -196,7 +196,7 @@
                 ${(group.movements || []).map(movement => `
                   <li>
                     <span style="color: grey;">${formatUnixTimestamp(movement.createdAt)}</span><br/>
-                    <b style="color: blue;">${movement.concept}</b> -> $${movement.amount}<br/>
+                    <b style="color: blue;">${movement.concept}</b> (total $${movement.amount})<br/>
                     ${movementDetailsByMovementId[movement.id]}
                     <button class="remove-movement-btn" data-movement-id="${movement.id}">❌</button>
                   </li>
