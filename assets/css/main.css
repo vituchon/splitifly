@@ -50,7 +50,7 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 24px;
+  font-size: 12px;
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
@@ -79,8 +79,7 @@ button {
   background: white;
   padding: 20px;
   border-radius: 10px;
-  width: 90%;
-  max-width: 400px;
+  max-width: 90%;
   text-align: center;
 }
 
