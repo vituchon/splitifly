@@ -1,4 +1,4 @@
-import { Price } from './price.js';
+import { Price } from './price';
 
 
 export interface Movement {

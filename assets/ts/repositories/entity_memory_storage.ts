@@ -1,4 +1,4 @@
-import { Identifiable, EntityNotExistsError } from './common.js';
+import { Identifiable, EntityNotExistsError } from './common';
 
 export class EntitiesMemoryStorage<E extends Identifiable> {
   protected entitiesById: Map<number, E>;

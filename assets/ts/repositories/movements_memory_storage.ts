@@ -1,6 +1,6 @@
-import { EntitiesRepository, Identifiable } from './common.js';
-import { EntitiesMemoryStorage } from './entity_memory_storage.js';
-import { Movement } from '../model/movement.js';
+import { EntitiesRepository, Identifiable } from './common';
+import { EntitiesMemoryStorage } from './entity_memory_storage';
+import { Movement } from '../model/movement';
 
 export interface MovementsRepository extends EntitiesRepository<Movement> {
   getByGroupId(groupId: number): Promise<Movement[]>;

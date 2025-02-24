@@ -1,11 +1,11 @@
-import { Group, Participant as ModelParticipant} from '../group.js';
-import { Movement as ModelMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsEqualShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares } from '../movement.js';
-import { Price } from '../price.js';
-import { EntitiesRepository } from '../../repositories/common.js';
-import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage.js';
-import { MovementsRepository, MovementsMemoryRepository } from '../../repositories/movements_memory_storage.js';
-import { ParticipantMovementsRepository, ParticipantMovementsMemoryRepository } from '../../repositories/participant-movements-memory-storage.js';
-import { EntitiesMemoryStorage } from '../../repositories/entity_memory_storage.js';
+import { Group, Participant as ModelParticipant} from '../group';
+import { Movement as ModelMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsEqualShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares } from '../movement';
+import { Price } from '../price';
+import { EntitiesRepository } from '../../repositories/common';
+import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage';
+import { MovementsRepository, MovementsMemoryRepository } from '../../repositories/movements_memory_storage';
+import { ParticipantMovementsRepository, ParticipantMovementsMemoryRepository } from '../../repositories/participant-movements-memory-storage';
+import { EntitiesMemoryStorage } from '../../repositories/entity_memory_storage';
 
 // Repository instances
 export const groupsRepository: EntitiesRepository<Group> = new EntitiesMemoryStorage<Group>();

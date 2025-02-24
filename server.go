@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -47,6 +48,11 @@ func buildRouter() *mux.Router {
 	//router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fileServer))
 	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Serving static file:", r.URL.Path)
+		// workaround for : https://github.com/microsoft/TypeScript/issues/27287#issuecomment-2679347081
+		if len(r.URL.Path) > 3 && r.URL.Path[:3] == "js/" && !strings.HasSuffix(r.URL.Path, ".js") {
+			r.URL.Path += ".js"
+			log.Println("Adjusted path to:", r.URL.Path)
+		}
 		fileServer.ServeHTTP(w, r)
 	})))
 

@@ -1,6 +1,6 @@
-import * as api from '../model/api/api.js';
-import { Group, Participant } from '../model/group.js';
-import { DebitCreditMap, Movement, ParticipantMovement, ParticipantShareByParticipantId } from '../model/movement.js';
+import * as api from '../model/api/api';
+import { Group, Participant } from '../model/group';
+import { DebitCreditMap, Movement, ParticipantMovement, ParticipantShareByParticipantId } from '../model/movement';
 
 interface State {
   groupById: {
