@@ -1,3 +1,4 @@
+import { _Number } from '../util/number';
 import { Movement, TransferMovement, ParticipantMovement, ParticipantShareByParticipantId, DebitCreditMap } from './movement';
 import {
     buildParticipantsEqualShare,
@@ -9,6 +10,7 @@ import {
     sumDebitCreditMaps,
     sumParticipantShares
 } from './movement';
+import { newPrice } from './price';
 
 describe('Movement Calculations', () => {
     describe('calculateDebitCreditMapForEqualShare', () => {
@@ -17,50 +19,50 @@ describe('Movement Calculations', () => {
                 name: "Movement fully covered by participant 1, resulting in participant 2 owing",
                 movement: {
                     id: 1,
-                    amount: 1000,
+                    amount: newPrice(1000),
                     createdAt: 0,
                     concept: "Test",
                     groupId: 1
                 } as Movement,
                 participantMovements: [
-                    { id: 1, participantId: 1, movementId: 1, amount: 1000 },
-                    { id: 2, participantId: 2, movementId: 1, amount: 0 }
+                    { id: 1, participantId: 1, movementId: 1, amount: newPrice(1000) },
+                    { id: 2, participantId: 2, movementId: 1, amount: newPrice(0) }
                 ] as ParticipantMovement[],
-                expected: new Map([[2, new Map([[1, 500]])]])
+                expected: new Map([[2, new Map([[1, newPrice(500)]])]])
             },
             {
                 name: "Three participants with uneven distribution",
                 movement: {
                     id: 1,
-                    amount: 900,
+                    amount: newPrice(900),
                     createdAt: 0,
                     concept: "Test",
                     groupId: 1
                 } as Movement,
                 participantMovements: [
-                    { id: 1, participantId: 1, movementId: 1, amount: 900 },
-                    { id: 2, participantId: 2, movementId: 1, amount: 0 },
-                    { id: 3, participantId: 3, movementId: 1, amount: 0 }
+                    { id: 1, participantId: 1, movementId: 1, amount: newPrice(900) },
+                    { id: 2, participantId: 2, movementId: 1, amount: newPrice(0) },
+                    { id: 3, participantId: 3, movementId: 1, amount: newPrice(0) }
                 ] as ParticipantMovement[],
                 expected: new Map([
-                    [2, new Map([[1, 300]])],
-                    [3, new Map([[1, 300]])]
+                    [2, new Map([[1, newPrice(300)]])],
+                    [3, new Map([[1, newPrice(300)]])]
                 ])
             },
             {
                 name: "Two participants split payment",
                 movement: {
                     id: 1,
-                    amount: 1000,
+                    amount: newPrice(1000),
                     createdAt: 0,
                     concept: "Test",
                     groupId: 1
                 } as Movement,
                 participantMovements: [
-                    { id: 1, participantId: 1, movementId: 1, amount: 600 },
-                    { id: 2, participantId: 2, movementId: 1, amount: 400 }
+                    { id: 1, participantId: 1, movementId: 1, amount: newPrice(600) },
+                    { id: 2, participantId: 2, movementId: 1, amount: newPrice(400) }
                 ] as ParticipantMovement[],
-                expected: new Map([[2, new Map([[1, 100]])]])
+                expected: new Map([[2, new Map([[1, newPrice(100)]])]])
             }
         ];
 
@@ -81,15 +83,15 @@ describe('Movement Calculations', () => {
                 id: 1,
                 groupId: 1,
                 createdAt: 0,
-                amount: 1000,
+                amount: newPrice(1000),
                 concept: "Transfer",
                 fromParticipantId: 1,
                 toParticipantId: 2
             };
 
             const shares = buildParticipantsTransferShare(movement);
-            expect(shares.get(1)).toBe(1000);  // creditor
-            expect(shares.get(2)).toBe(-1000); // debtor
+            expect(shares.get(1)).toBe(newPrice(1000));  // creditor
+            expect(shares.get(2)).toBe(newPrice(-1000)); // debtor
             ensureSharesSumToZero(shares);
         });
 
@@ -98,16 +100,16 @@ describe('Movement Calculations', () => {
                 id: 1,
                 groupId: 1,
                 createdAt: 0,
-                amount: 1000,
+                amount: newPrice(1000),
                 concept: "Transfer",
                 fromParticipantId: 1,
                 toParticipantId: 2
             };
 
             const participantMovements = buildParticipantsTransferMovements(movement);
-            expect(participantMovements.length).toBe(2);
-            expect(participantMovements[0].amount).toBe(1000);
-            expect(participantMovements[1].amount).toBe(0);
+            expect(newPrice(participantMovements.length)).toBe(newPrice(2));
+            expect(participantMovements[0].amount).toBe(newPrice(1000));
+            expect(participantMovements[1].amount).toBe(newPrice(0));
             expect(participantMovements[0].participantId).toBe(1);
             expect(participantMovements[1].participantId).toBe(2);
         });
@@ -115,23 +117,24 @@ describe('Movement Calculations', () => {
 
     describe('Sum operations', () => {
         it('should sum debit credit maps correctly', () => {
-            const map1 = new Map([[1, new Map([[2, 500]])]]);
-            const map2 = new Map([[1, new Map([[2, 300]])]]);
+            const map1 = new Map([[1, new Map([[2, newPrice(500)]])]]);
+            const map2 = new Map([[1, new Map([[2, newPrice(300)]])]]);
 
             const result = sumDebitCreditMaps(map1, map2);
-            expect(result.get(1)?.get(2)).toBe(800);
+            expect(result.get(1)?.get(2)).toBe(newPrice(800));
         });
 
         it('should sum participant shares correctly', () => {
-            const shares1 = new Map([[1, 500], [2, -500]]);
-            const shares2 = new Map([[1, 300], [2, -300]]);
+            const shares1 = new Map([[1, newPrice(500)], [2, newPrice(-500)]]);
+            const shares2 = new Map([[1, newPrice(300)], [2, newPrice(-300)]]);
 
             const result = sumParticipantShares(shares1, shares2);
-            expect(result.get(1)).toBe(800);
-            expect(result.get(2)).toBe(-800);
+            expect(result.get(1)).toBe(newPrice(800));
+            expect(result.get(2)).toBe(newPrice(-800));
         });
     });
 });
+
 
 describe('CalculateDebitCreditMapForTransfer', () => {
     const tests = [
@@ -139,7 +142,7 @@ describe('CalculateDebitCreditMapForTransfer', () => {
             name: "Participant 1 transfer to participant 2, participant 2 (receiver) owes participant 1 (emitter)",
             transferMovement: {
                 id: 1,
-                amount: 1000,
+                amount: newPrice(1000),
                 createdAt: 0,
                 concept: "Test",
                 groupId: 1,
@@ -147,10 +150,10 @@ describe('CalculateDebitCreditMapForTransfer', () => {
                 toParticipantId: 2
             } as TransferMovement,
             shares: new Map([
-                [1, 1000],
-                [2, -1000]
+                [1, newPrice(1000)],
+                [2, newPrice(-1000)]
             ]),
-            expected: new Map([[2, new Map([[1, 1000]])]])
+            expected: new Map([[2, new Map([[1, newPrice(1000)]])]])
         }
     ];
 
@@ -192,7 +195,7 @@ function areDebitCreditMapsEqual(left: DebitCreditMap, right: DebitCreditMap): b
                 console.log(`Inner key ${innerKey} for outer key ${key} found in left but not in right`);
                 return false;
             }
-            if (leftValue !== rightValue) {
+            if (!leftValue.equals(rightValue)) {
                 console.log(`Value mismatch at key ${key} -> ${innerKey}: left=${leftValue}, right=${rightValue}`);
                 return false;
             }
@@ -204,10 +207,14 @@ function areDebitCreditMapsEqual(left: DebitCreditMap, right: DebitCreditMap): b
 
 // Función auxiliar para comparar ParticipantShares
 function areParticipantSharesEqual(left: ParticipantShareByParticipantId, right: ParticipantShareByParticipantId): boolean {
-    if (left.size !== right.size) return false;
+    if (left.size !== right.size) {
+      return false;
+    }
 
     for (const [key, value] of left) {
-        if (right.get(key) !== value) return false;
+        if (!right.get(key).equals(value)) {
+          return false;
+        }
     }
 
     return true;
@@ -229,12 +236,33 @@ function it(description: string, fn: () => void) {
     }
 }
 
-function expect(actual: any) {
+// following advice from chatgpt (https://stackoverflow.com/a/13212871/903998)
+function expect(actual: boolean): { toBe(expected: boolean): void };
+function expect(actual: number): { toBe(expected: number): void };
+function expect(actual: _Number): { toBe(expected: _Number): void };
+
+function expect(actual: boolean | number | _Number) {
     return {
-        toBe: (expected: any) => {
-            if (actual !== expected) {
-                throw new Error(`Expected ${expected} but got ${actual}`);
+        toBe: (expected: boolean | number | _Number) => {
+            if (typeof actual === 'boolean' && typeof expected === 'boolean') {
+                if (actual !== expected) {
+                    throw new Error(`Expected ${expected} but got ${actual}`);
+                }
+            } else if (typeof actual === 'number' && typeof expected === 'number') {
+                if (actual !== expected) {
+                    throw new Error(`Expected ${expected} but got ${actual}`);
+                }
+            } else if (isNumber(actual) && isNumber(expected)) {
+                if (!actual.equals(expected)) {
+                    throw new Error(`Expected ${expected.toNumber()} but got ${actual.toNumber()}`);
+                }
+            } else {
+                throw new Error('Incompatible types for comparison');
             }
         }
     };
+}
+
+function isNumber(obj: any): obj is _Number {
+  return obj && typeof obj.equals === 'function';
 }

@@ -1,8 +1,9 @@
 import * as api from '../model/api/api';
 import { Group, Participant } from '../model/group';
 import { DebitCreditMap, Movement, ParticipantMovement, ParticipantShareByParticipantId } from '../model/movement';
+import { fromFractionJson, fromNumberJson } from '../model/price';
 
-interface State {
+export interface State {
   groupById: {
     [groupId: number] : Group
   }
@@ -23,7 +24,7 @@ function loadState(): State {
   try {
     //debugger;
     const storedState = localStorage.getItem(STORAGE_KEY);
-    const recoveredState = storedState ? JSON.parse(storedState) : getDefaultState();
+    const recoveredState = storedState ? JSON.parse(storedState, jsonReviver) : getDefaultState();
     initializeRepositories(recoveredState)
     return recoveredState
   } catch (error) {
@@ -31,6 +32,18 @@ function loadState(): State {
     return getDefaultState();
   }
 }
+
+const jsonReviver = (key: string, value: any) => {
+  if (key === "amount") {
+    if (typeof value === 'object') {
+      return fromFractionJson(value)
+    } else {
+      return fromNumberJson(value) // to ensure backwards compatibility with older version that employs native js numbers
+    }
+  }
+  return value;
+};
+
 
 function getDefaultState(): State {
   return {
@@ -212,7 +225,7 @@ export async function fetchParticipantMovements(movementId: number) {
   }
 }
 
-export async function requestAggregatedBalances(groupId: number, appState: State) {
+export async function requestAggregatedBalances(groupId: number) {
   try {
     const [balance, shares] = await api.calculateAggregatedBalances(groupId);
     return { balance, shares };
