@@ -99,53 +99,57 @@ describe('Fraction', () => {
 
     describe('Construcción', () => {
       it('debería crear una fracción desde una cadena con punto como separador', () => {
-        const frac = Fraction.fromString('2.5', '.');
+        const frac = Fraction.fromDecimal('2.5', '.');
         expect(frac.numerator.toString()).toBe('5');
         expect(frac.denominator.toString()).toBe('2');
 
-        const frac2 = Fraction.fromString('3.75', '.');
+        const frac2 = Fraction.fromDecimal('3.75', '.');
         expect(frac2.numerator.toString()).toBe('15');
         expect(frac2.denominator.toString()).toBe('4');
+
+        const frac3 = Fraction.fromDecimal('1.5', '.');
+        expect(frac3.numerator.toString()).toBe('3');
+        expect(frac3.denominator.toString()).toBe('2');
       });
 
       it('debería crear una fracción desde una cadena con otro separador', () => {
-        const frac = Fraction.fromString('2|5', '|');
+        const frac = Fraction.fromDecimal('2|5', '|');
         expect(frac.numerator.toString()).toBe('5');
         expect(frac.denominator.toString()).toBe('2');
       });
 
       it('debería crear una fracción desde una cadena sin parte decimal', () => {
-        const frac1 = Fraction.fromString('5', '.');
+        const frac1 = Fraction.fromDecimal('5', '.');
         expect(frac1.numerator.toString()).toBe('5');
         expect(frac1.denominator.toString()).toBe('1');
 
-        const frac2 = Fraction.fromString('0', '.');
+        const frac2 = Fraction.fromDecimal('0', '.');
         expect(frac2.numerator.toString()).toBe('0');
         expect(frac2.denominator.toString()).toBe('1');
       });
 
       it('debería no consderar ceros al inicio de la parte entera', () => {
-        const frac = Fraction.fromString('0002.5', '.');
+        const frac = Fraction.fromDecimal('0002.5', '.');
         expect(frac.numerator.toString()).toBe('5');
         expect(frac.denominator.toString()).toBe('2');
       });
 
       it('debería eliminar ceros al final en la parte decimal', () => {
-        const frac = Fraction.fromString('2.500', '.');
+        const frac = Fraction.fromDecimal('2.500', '.');
         expect(frac.numerator.toString()).toBe('5');
         expect(frac.denominator.toString()).toBe('2');
       });
 
       it('debería manejar números negativos correctamente', () => {
-        const frac1 = Fraction.fromString('-5', '.');
+        const frac1 = Fraction.fromDecimal('-5', '.');
         expect(frac1.numerator.toString()).toBe('-5');
         expect(frac1.denominator.toString()).toBe('1');
 
-        const frac2 = Fraction.fromString('-2.5', '.');
+        const frac2 = Fraction.fromDecimal('-2.5', '.');
         expect(frac2.numerator.toString()).toBe('-5');
         expect(frac2.denominator.toString()).toBe('2');
 
-        const frac3 = Fraction.fromString('-3.75', '.');
+        const frac3 = Fraction.fromDecimal('-3.75', '.');
         expect(frac3.numerator.toString()).toBe('-15');
         expect(frac3.denominator.toString()).toBe('4');
       });
@@ -177,6 +181,147 @@ describe('Fraction', () => {
   });
 });
 
+describe('Comparaciones y Negación', () => {
+  describe('Negación', () => {
+    const cases = [
+        {
+            input: Fraction.fromFraction(1, 2),
+            expected: Fraction.fromFraction(-1, 2)
+        },
+        {
+            input: Fraction.fromFraction(-3, 4),
+            expected: Fraction.fromFraction(3, 4)
+        },
+        {
+            input: Fraction.fromFraction(0, 1),
+            expected: Fraction.fromFraction(0, 1)
+        },
+    ];
+
+    cases.forEach(({ input, expected }, index) => {
+        it(`debería negar correctamente el caso ${index + 1}`, () => {
+            const result = input.negate();
+            expect(result.equals(expected)).toBe(true);
+        });
+    });
+  });
+
+  describe('Comparaciones con compareTo', () => {
+    const cases = [
+        {
+            a: Fraction.fromFraction(1, 2),
+            b: Fraction.fromFraction(1, 2),
+            expected: 0
+        },
+        {
+            a: Fraction.fromFraction(1, 3),
+            b: Fraction.fromFraction(1, 2),
+            expected: -1
+        },
+        {
+            a: Fraction.fromFraction(3, 4),
+            b: Fraction.fromFraction(1, 2),
+            expected: 1
+        },
+        {
+            a: Fraction.fromFraction(-1, 2),
+            b: Fraction.fromFraction(1, 2),
+            expected: -1
+        },
+        {
+            a: Fraction.fromFraction(1, 2),
+            b: Fraction.fromFraction(-1, 2),
+            expected: 1
+        },
+    ];
+
+    cases.forEach(({ a, b, expected }, index) => {
+      it(`debería comparar correctamente el caso ${index + 1}`, () => {
+          const result = a.compareTo(b);
+          expect(result).toBe(expected);
+      });
+    });
+  });
+
+  describe('Comparaciones con equals', () => {
+    const cases = [
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(1, 2), expected: true },
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(5, 10), expected: true },
+      { a: Fraction.fromFraction(1, 3), b: Fraction.fromFraction(1, 2), expected: false },
+      { a: Fraction.fromFraction(-1, 2), b: Fraction.fromFraction(-2, 4), expected: true },
+    ];
+
+    cases.forEach(({ a, b, expected }, index) => {
+      it(`debería comparar correctamente el caso ${index + 1}`, () => {
+        const result = a.equals(b);
+        expect(result).toBe(expected);
+      });
+    });
+  });
+
+  describe('Comparaciones con isLowerStrict', () => {
+    const cases = [
+      { a: Fraction.fromFraction(1, 3), b: Fraction.fromFraction(1, 2), expected: true },
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(1, 3), expected: false },
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(1, 2), expected: false },
+      { a: Fraction.fromFraction(-1, 1), b: Fraction.fromFraction(1, 2), expected: true },
+      { a: Fraction.fromFraction(10, 20), b: Fraction.fromFraction(3, 4), expected: true },
+    ];
+    cases.forEach(({ a, b, expected }, index) => {
+      it(`debería comparar correctamente el caso ${index + 1}`, () => {
+        const result = a.isLowerStrict(b);
+        expect(result).toBe(expected);
+      });
+    });
+  });
+
+  describe('Comparaciones con isLowerOrEquals', () => {
+    const cases = [
+      { a: Fraction.fromFraction(1, 3), b: Fraction.fromFraction(1, 2), expected: true },
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(1, 3), expected: false },
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(1, 2), expected: true },
+    ];
+    cases.forEach(({ a, b, expected }, index) => {
+      it(`debería comparar correctamente el caso ${index + 1}`, () => {
+        const result = a.isLowerOrEquals(b);
+        expect(result).toBe(expected);
+      });
+    });
+  });
+
+  describe('Comparaciones con isHigherStrict', () => {
+    const cases = [
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(1, 3), expected: true },
+      { a: Fraction.fromFraction(1, 3), b: Fraction.fromFraction(1, 2), expected: false },
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(1, 2), expected: false },
+      { a: Fraction.fromFraction(-5, 2), b: Fraction.fromFraction(1, 2), expected: false },
+      { a: Fraction.fromFraction(5, 2), b: Fraction.fromFraction(1, 2), expected: true },
+    ];
+    cases.forEach(({ a, b, expected }, index) => {
+      it(`debería comparar correctamente el caso ${index + 1}`, () => {
+        const result = a.isHigherStrict(b);
+        expect(result).toBe(expected);
+      });
+    });
+  });
+
+  describe('Comparaciones con isHigherOrEquals', () => {
+    const cases = [
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(1, 3), expected: true },
+      { a: Fraction.fromFraction(1, 3), b: Fraction.fromFraction(1, 2), expected: false },
+      { a: Fraction.fromFraction(1, 2), b: Fraction.fromFraction(1, 2), expected: true },
+      { a: Fraction.fromFraction(-5, 2), b: Fraction.fromFraction(1, 2), expected: false },
+      { a: Fraction.fromFraction(5, 2), b: Fraction.fromFraction(1, 2), expected: true },
+    ];
+    cases.forEach(({ a, b, expected }, index) => {
+      it(`debería comparar correctamente el caso ${index + 1}`, () => {
+        const result = a.isHigherOrEquals(b);
+        expect(result).toBe(expected);
+      });
+    });
+  });
+
+});
 
 // Framework de testing minimalista
 function describe(description: string, fn: () => void) {
@@ -190,7 +335,7 @@ function it(description: string, fn: () => void) {
       console.log(`✓ ${description}`);
   } catch (error) {
       console.error(`✗ ${description}`);
-      console.error(error);
+      //console.error(error);
   }
 }
 

@@ -3,6 +3,8 @@ import { _Number } from "./number";
 export class Fraction implements _Number {
   public numerator: number;
   public denominator: number;
+  public static ZERO: Fraction = new Fraction(0, 1);
+  public static ONE: Fraction = new Fraction(1, 1);
 
   private constructor(numerator: number, denominator: number) {
     const gcd = Fraction.gcd(Math.abs(numerator), Math.abs(denominator));
@@ -22,11 +24,7 @@ export class Fraction implements _Number {
     return new Fraction(numerator, denominator);
   }
 
-  static fromBigFraction(fraction: Fraction): Fraction {
-    return new Fraction(fraction.numerator, fraction.denominator);
-  }
-
-  static fromString(number: string, sep: string): Fraction {
+  static fromDecimal(number: string, sep: string): Fraction {
     const sepPos = number.indexOf(sep);
     if (sepPos !== -1) {
       const integerPart = number.substring(0, sepPos) || "0";
@@ -73,6 +71,29 @@ export class Fraction implements _Number {
     return new Fraction(this.numerator * other.denominator, this.denominator * other.numerator);
   }
 
+  negate(): Fraction {
+    return new Fraction(-this.numerator, this.denominator);
+  }
+
+  compareTo(_other: _Number): number{
+      // La comparación la restringo a objetos del mismo tipo
+      const other = _other as unknown as Fraction
+      const an = this.numerator;
+      const ad = this.denominator;
+      const bn = other.numerator;
+      const bd = other.denominator;
+      // Divido las dos fracciones usando la propiedad de (an/ad) : (bn/bd) = (an/ad * bd/bd)
+      const left = an * bd
+      const right = bn * ad;
+      if (left < right) { //Si el de arriba (an * bd) es mayor (resultado mayor a 1) entonces este objeto es mayor al otro
+        return -1;
+      } else if (left === right) {//si son iguales (resultado igual a 1) entonces son iguales
+        return 0;
+      } else { //si es menor (resulado mener a 1) entonces es menor
+        return 1;
+      }
+  }
+
   toNumber(): number {
     return this.numerator / this.denominator;
   }
@@ -81,8 +102,24 @@ export class Fraction implements _Number {
     return `${this.numerator}/${this.denominator}`;
   }
 
-  equals(other: Fraction): boolean {
-    return this.numerator === other.numerator && this.denominator === other.denominator;
+  equals(other: _Number): boolean {
+    return this.compareTo(other) === 0
+  }
+
+  isLowerStrict(other: _Number): boolean {
+    return this.compareTo(other) < 0
+  }
+
+  isLowerOrEquals(other: _Number): boolean {
+    return this.compareTo(other) <= 0
+  }
+
+  isHigherStrict(other: _Number): boolean {
+    return this.compareTo(other) > 0
+  }
+
+  isHigherOrEquals(other: _Number): boolean {
+    return this.compareTo(other) >= 0
   }
 }
 
