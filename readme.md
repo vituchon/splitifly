@@ -7,10 +7,7 @@ Same here — so grab this app and let the computer do the work for you!
 
 ## License
 
-This project is licensed under the following terms:
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
 
-All code in this repository can be used, modified, and shared freely **for non-commercial purposes only**.
-
-Any commercial use, including but not limited to resale, incorporation into proprietary software, or use in for-profit projects, requires prior authorization.
-
-For commercial licensing inquiries, please contact me.
+You are free to use, modify, and share the code for **non-commercial purposes**.
+For commercial use, please contact me to obtain proper authorization.
