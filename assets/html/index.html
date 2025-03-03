@@ -100,7 +100,11 @@
 
       <div id="add-movement-modal" class="modal">
         <div class="modal-content">
-          <h2>Agregar Movimiento</h2>
+          <h2 style="margin-bottom: 0px;">Agregar Movimiento</h2>
+          <a href="#" style="color: black; font-size: 0.7em;" onclick="document.getElementById('add-movement-help').style.display = 'block';this.style.display = 'none';">¿Como cargo un movimiento? 🆘</a>
+          <div id="add-movement-help" style="max-width: 20em; display: none; text-align: justify;">
+            <span style="font-size: 0.7em;">Seleccioná un participante e ingresa el monto con el que contribuyó en el movimiento. Si no puso entonces el valor es <b>0</b>. <br/>Se requiere al menos dos participantes, los que se excluyan no serán afectados por este movimiento.<br/>El monto total se calcula automáticamente a partir de la suma de aportes de cada particpante.</span>
+          </div>
           <div class="vertical-layout">
             <input id="movement-concept-input" style="width: auto;" type="text" placeholder="Concepto del movimiento">
             <input id="movement-price-input" style="width: auto;" type="number" disabled placeholder="Monto total">
@@ -129,7 +133,11 @@
 
       <div id="display-aggregated-balance-modal" class="modal">
         <div class="modal-content cat-background">
-          <h2>Balance entre participantes</h2>
+          <h2 style="margin-bottom: 0;">Matriz de deudas</h2>
+          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('debts-matrix-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta matriz? 🆘</a>
+          <div id="debts-matrix-help" style="max-width: 20em; display: none; text-align: justify;">
+            <span style="font-size: 0.7em;">El participante de cada fila <b>debe</b> al participante de la columna el valor correspondiente a la celda.</span>
+          </div>
           <table id="balance-table" border="1">
             <thead>
               <tr id="balance-header-row">
@@ -139,7 +147,11 @@
             <tbody id="balance-body"></tbody>
           </table>
 
-          <h2>Balance total</h2>
+          <h2 style="margin-bottom: 0;">Balances</h2>
+          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('balances-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta tablita? 🆘</a>
+          <div id="balances-help" style="max-width: 20em; display: none; text-align: justify;">
+            <span style="font-size: 0.7em;">Se enumera cuanto tiene de saldo a favor (+) o en contra (-) cada participante.</span>
+          </div>
           <table id="shares-table" border="1" style="margin-bottom: 2em;">
             <thead>
               <tr>

@@ -386,7 +386,15 @@ async function openAggregatedBalancesModal(groupId: number, appState: app.State)
   const sharesBody = document.getElementById('shares-body');
   const sharesArray = Array.from(shares.entries())
   sharesBody.innerHTML = Array.from(sharesArray)
-    .map(([participantId, amount]) => `<tr><td>${appState.participantById[participantId].name}</td><td>${stringifyPrice(amount)}</td></tr>`)
+    .map(([participantId, amount]) => {
+      var styles = "font-weight: 900; "
+      if (amount.isLowerStrict(zeroValue())) {
+        styles += "background-color: rgba(255, 0, 0, 0.6); color: black;"
+      } else {
+        styles += "background-color: rgba(0, 150, 0, 0.6); color: white;"
+      }
+      return `<tr><td>${appState.participantById[participantId].name}</td><td style="${styles}">${stringifyPrice(amount)}</td></tr>`
+    })
     .join('');
 
   const isGroupSettled = sharesArray.reduce((acc, [participantId, amount]) => {
