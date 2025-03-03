@@ -1,17 +1,26 @@
 import { Group, Participant as ModelParticipant} from '../group';
 import { Movement as ModelMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsEqualShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares } from '../movement';
 import { Price } from '../price';
-import { EntitiesRepository } from '../../repositories/common';
+import { EntitiesRepository, Collection } from '../../repositories/common';
 import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage';
 import { MovementsRepository, MovementsMemoryRepository } from '../../repositories/movements_memory_storage';
 import { ParticipantMovementsRepository, ParticipantMovementsMemoryRepository } from '../../repositories/participant-movements-memory-storage';
 import { EntitiesMemoryStorage } from '../../repositories/entity_memory_storage';
 
 // Repository instances
-export const groupsRepository: EntitiesRepository<Group> = new EntitiesMemoryStorage<Group>();
-export const participantsRepository: ParticipantsRepository = new ParticipantsMemoryRepository();
-export const movementsRepository: MovementsRepository = new MovementsMemoryRepository();
-export const participantMovementsRepository: ParticipantMovementsRepository = new ParticipantMovementsMemoryRepository();
+const groupsRepository: EntitiesRepository<Group> = new EntitiesMemoryStorage<Group>();
+const participantsRepository: ParticipantsRepository = new ParticipantsMemoryRepository();
+const movementsRepository: MovementsRepository = new MovementsMemoryRepository();
+const participantMovementsRepository: ParticipantMovementsRepository = new ParticipantMovementsMemoryRepository();
+
+// move this method to api.ts without appstate so repostores becomes hiding
+export function initRepositories(groups: Collection<Group>, participants: Collection<ModelParticipant>, movements: Collection<ModelMovement>, participantMovements: Collection<ModelParticipantMovement>) {
+  groupsRepository.init(groups)
+  participantsRepository.init(participants)
+  movementsRepository.init(movements)
+  participantMovementsRepository.init(participantMovements)
+}
+
 
 // perhaps api could be an interface and NativeBrowserApi a class!
 export async function createGroup(name: string): Promise<Group> {

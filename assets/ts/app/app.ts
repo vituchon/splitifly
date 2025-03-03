@@ -1,7 +1,7 @@
 import * as api from '../model/api/api';
 import { Group, Participant } from '../model/group';
-import { DebitCreditMap, Movement, ParticipantMovement, ParticipantShareByParticipantId } from '../model/movement';
-import { fromFractionJson, fromNumberJson } from '../model/price';
+import { Movement, ParticipantMovement } from '../model/movement';
+import { fromJsonFraction, fromJsonNumber } from '../model/price';
 
 export interface State {
   groupById: {
@@ -24,8 +24,8 @@ function loadState(): State {
   try {
     //debugger;
     const storedState = localStorage.getItem(STORAGE_KEY);
-    const recoveredState = storedState ? JSON.parse(storedState, jsonReviver) : getDefaultState();
-    initializeRepositories(recoveredState)
+    const recoveredState: State = storedState ? JSON.parse(storedState, jsonLoader) : getDefaultState();
+    api.initRepositories(recoveredState.groupById, recoveredState.participantById, recoveredState.movementById, recoveredState.participantMovementById)
     return recoveredState
   } catch (error) {
     console.error("Error loading state from localStorage:", error);
@@ -33,12 +33,12 @@ function loadState(): State {
   }
 }
 
-const jsonReviver = (key: string, value: any) => {
+const jsonLoader = (key: string, value: any) => {
   if (key === "amount") {
     if (typeof value === 'object') {
-      return fromFractionJson(value)
+      return fromJsonFraction(value)
     } else {
-      return fromNumberJson(value) // to ensure backwards compatibility with older version that employs native js numbers
+      return fromJsonNumber(value) // to ensure backwards compatibility with older version that employs native js numbers
     }
   }
   return value;
@@ -52,14 +52,6 @@ function getDefaultState(): State {
     movementById: {},
     participantMovementById: {},
   };
-}
-
-// move this method to api.ts without appstate so repostores becomes hiding
-function initializeRepositories(appState: State) {
-  api.groupsRepository.load(appState.groupById)
-  api.participantsRepository.load(appState.participantById)
-  api.movementsRepository.load(appState.movementById)
-  api.participantMovementsRepository.load(appState.participantMovementById)
 }
 
 export const state: State = loadState();

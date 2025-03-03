@@ -13,8 +13,10 @@ export interface Identifiable {
   id: number;
 }
 
+export type Collection<E> = {[id: number]: E} | Map<number, E> | E[];
+
 export interface EntitiesRepository<E extends Identifiable> {
-  load(entityById: { [id: number]: E }): void;
+  init(data: Collection<E>): Promise<void>
   getAll(): Promise<E[]>;
   getById(id: number): Promise<E>;
   save(entity: E): Promise<E>;

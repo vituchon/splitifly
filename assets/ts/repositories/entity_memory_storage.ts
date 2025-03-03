@@ -1,7 +1,7 @@
-import { Identifiable, EntityNotExistsError } from './common';
+import { Identifiable, EntityNotExistsError, Collection, EntitiesRepository } from './common';
 
-export class EntitiesMemoryStorage<E extends Identifiable> {
-  protected entitiesById: Map<number, E>;
+export class EntitiesMemoryStorage<E extends Identifiable> implements EntitiesRepository<E>{
+  protected entitiesById: Map<number, E>; // TODO: rename to entityById
   protected idSequence: number;
 
   constructor() {
@@ -9,17 +9,46 @@ export class EntitiesMemoryStorage<E extends Identifiable> {
     this.idSequence = 0;
   }
 
-  // TODO: enhace method by allowing to pass Map<number, E> or E[] as well
-  async load( entityById: {[id: number]: E }) {
-    if (!entityById || Object.keys(entityById).length === 0) {
-      return;
-    }
-    for (const [id, entity] of Object.entries(entityById)) {
-      this.entitiesById.set(Number(id), entity);
-    }
-    const maxId = Math.max(...Object.keys(entityById).map(Number), 0);
-    this.idSequence = maxId
+  async init(data: {[id: number]: E}): Promise<void>;
+  async init(data: Map<number, E>): Promise<void>;
+  async init(data: E[]): Promise<void>;
+  async init(data: Collection<E>): Promise<void> {
+      if (!data) {
+        return
+      }
+      if (Array.isArray(data)) {
+          await this.loadFromArray(data);
+      } else if (data instanceof Map) {
+          await this.loadFromMap(data);
+      } else {
+          await this.loadFromObject(data);
+      }
   }
+
+  private async loadFromArray(entities: E[]) {
+      let nextId = this.idSequence + 1;
+      for (const entity of entities) {
+          this.entitiesById.set(nextId++, entity);
+      }
+      this.idSequence = nextId - 1;
+  }
+
+  private async loadFromMap(entityById: Map<number, E>) {
+      for (const [id, entity] of entityById.entries()) {
+          this.entitiesById.set(id, entity);
+      }
+      const maxId = Math.max(...Array.from(entityById.keys()), this.idSequence);
+      this.idSequence = maxId;
+  }
+
+  public async loadFromObject(entityById: {[id: number]: E}) {
+      for (const [id, entity] of Object.entries(entityById)) {
+          this.entitiesById.set(+id, entity);
+      }
+      const maxId = Math.max(...Object.keys(entityById).map(Number), this.idSequence);
+      this.idSequence = maxId;
+  }
+
 
   async getAll(): Promise<E[]> {
     return Array.from(this.entitiesById.values());

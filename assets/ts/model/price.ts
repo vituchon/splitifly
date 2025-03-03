@@ -4,12 +4,17 @@ import { _Number } from "../util/number";
 export type Price = _Number;
 /*
 // some funcy idea to play with....
-interface NumberBuilder {
-  from(value: number): _Number
+interface PriceBuilder {
+  newPrice(amount: number, currency: string) : Price
+  fromJsonFraction(value: any) : Price
+  fromJsonNumber(value: any) : Price
+  parsePrice(number: string): Price
+  stringifyPrice(amount: Price): string
+  zeroValue(): Price
 }
-
-class FractionNumberBuilder implements NumberBuilder {
-  from(value: number): _Number {
+// so i can define a class like this...
+class PriceFractionBasedBuilder implements PriceBuilder {
+  newPrice(value: number, currency: string = "ARS"): _Number {
     if (value === 0) {
       return Fraction.ZERO
     }
@@ -18,13 +23,25 @@ class FractionNumberBuilder implements NumberBuilder {
     }
     return Fraction.fromInteger(value)
   }
+  fromJsonFraction(value: any): _Number {
+    return Fraction.fromFraction(value.numerator, value.denominator);
+  }
+  fromJsonNumber(value: any): _Number {
+    return Fraction.fromInteger(value);
+  }
+  parsePrice(number: string): _Number {
+    return Fraction.fromDecimal(number, ".")
+  }
+  stringifyPrice(amount: _Number): string {
+    return amount.toNumber().toString()
+  }
+  zeroValue(): _Number {
+    return Fraction.ZERO
+  }
 }
-
-const actualNumberBuilder = new FractionNumberBuilder()
-
-export function newPrice(amount: number, currency: string = "ARS") : Price {
-  return actualNumberBuilder.from(amount)
-}*/
+// so I can use an object like this....
+const priceBuilder = new PriceFractionBasedBuilder()
+*/
 
 export function newPrice(amount: number, currency: string = "ARS") : Price {
   if (amount === 0) {
@@ -36,11 +53,11 @@ export function newPrice(amount: number, currency: string = "ARS") : Price {
   return Fraction.fromInteger(amount)
 }
 
-export function fromFractionJson(value: any) {
+export function fromJsonFraction(value: any) {
   return Fraction.fromFraction(value.numerator, value.denominator);
 }
 
-export function fromNumberJson(value: any) {
+export function fromJsonNumber(value: any) {
   return Fraction.fromInteger(value);
 }
 
@@ -68,11 +85,11 @@ export function newPrice(amount: number, currency: string = "ARS") : Price {
   return NativeNumber.fromInteger(amount)
 }
 
-export function fromFractionJson(value: any) {
+export function fromJsonFraction(value: any) {
   return NativeNumber.fromFraction(value.numerator, value.denominator);
 }
 
-export function fromNumberJson(value: any) {
+export function fromJsonNumber(value: any) {
   return NativeNumber.fromInteger(value);
 }
 
