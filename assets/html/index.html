@@ -103,7 +103,12 @@
           <h2 style="margin-bottom: 0px;">Agregar Movimiento</h2>
           <a href="#" style="color: black; font-size: 0.7em;" onclick="document.getElementById('add-movement-help').style.display = 'block';this.style.display = 'none';">¿Como cargo un movimiento? 🆘</a>
           <div id="add-movement-help" style="max-width: 20em; display: none; text-align: justify;">
-            <span style="font-size: 0.7em;">Seleccioná un participante e ingresa el monto con el que contribuyó en el movimiento. Si no puso entonces el valor es <b>0</b>. <br/>Se requiere al menos dos participantes, los que se excluyan no serán afectados por este movimiento.<br/>El monto total se calcula automáticamente a partir de la suma de aportes de cada particpante.</span>
+            <span style="font-size: 0.7em;">
+              <span><b>Seleccioná un participante e ingresá el monto con el que contribuyó en este movimiento.</b> Si no contribuyo pero igual se benefició, poné como valor un 0.</span><br>
+              <span>⚠️<b>El monto total se calcula automáticamente</b> sumando los aportes de cada participante. Se asume que todos los involucrados deben pagar partes iguales.</span><br>
+              <span><i>Por ejemplo, si el movimiento es de 500 entre dos, a cada uno le corresponde pagar 250. Si es de 900 entre tres, a cada uno le corresponde pagar 300.</i></span><br>
+              <span>⚠️<b>Se necesitan al menos dos participantes</b>. Los que se excluyan no serán afectados por este movimiento.</span>
+            </span>
           </div>
           <div class="vertical-layout">
             <input id="movement-concept-input" style="width: auto;" type="text" placeholder="Concepto del movimiento">
