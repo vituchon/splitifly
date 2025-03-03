@@ -8,7 +8,7 @@ export interface ParticipantsRepository extends EntitiesRepository<Participant> 
 
 export class ParticipantsMemoryRepository extends EntitiesMemoryStorage<Participant> implements ParticipantsRepository {
   async getByGroupId(groupId: number): Promise<Participant[]> {
-    return Array.from(this.entitiesById.values())
+    return Array.from(this.entityById.values())
       .filter(participant => participant.groupId === groupId);
   }
 }

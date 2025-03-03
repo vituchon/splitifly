@@ -8,7 +8,7 @@ export interface MovementsRepository extends EntitiesRepository<Movement> {
 
 export class MovementsMemoryRepository extends EntitiesMemoryStorage<Movement> implements MovementsRepository {
   async getByGroupId(groupId: number): Promise<Movement[]> {
-    return Array.from(this.entitiesById.values())
+    return Array.from(this.entityById.values())
       .filter(pm => pm.groupId === groupId);
   }
 }

@@ -1,11 +1,11 @@
 import { Identifiable, EntityNotExistsError, Collection, EntitiesRepository } from './common';
 
 export class EntitiesMemoryStorage<E extends Identifiable> implements EntitiesRepository<E>{
-  protected entitiesById: Map<number, E>; // TODO: rename to entityById
+  protected entityById: Map<number, E>;
   protected idSequence: number;
 
   constructor() {
-    this.entitiesById = new Map<number, E>();
+    this.entityById = new Map<number, E>();
     this.idSequence = 0;
   }
 
@@ -28,14 +28,14 @@ export class EntitiesMemoryStorage<E extends Identifiable> implements EntitiesRe
   private async loadFromArray(entities: E[]) {
       let nextId = this.idSequence + 1;
       for (const entity of entities) {
-          this.entitiesById.set(nextId++, entity);
+          this.entityById.set(nextId++, entity);
       }
       this.idSequence = nextId - 1;
   }
 
   private async loadFromMap(entityById: Map<number, E>) {
       for (const [id, entity] of entityById.entries()) {
-          this.entitiesById.set(id, entity);
+          this.entityById.set(id, entity);
       }
       const maxId = Math.max(...Array.from(entityById.keys()), this.idSequence);
       this.idSequence = maxId;
@@ -43,7 +43,7 @@ export class EntitiesMemoryStorage<E extends Identifiable> implements EntitiesRe
 
   public async loadFromObject(entityById: {[id: number]: E}) {
       for (const [id, entity] of Object.entries(entityById)) {
-          this.entitiesById.set(+id, entity);
+          this.entityById.set(+id, entity);
       }
       const maxId = Math.max(...Object.keys(entityById).map(Number), this.idSequence);
       this.idSequence = maxId;
@@ -51,11 +51,11 @@ export class EntitiesMemoryStorage<E extends Identifiable> implements EntitiesRe
 
 
   async getAll(): Promise<E[]> {
-    return Array.from(this.entitiesById.values());
+    return Array.from(this.entityById.values());
   }
 
   async getById(id: number): Promise<E> {
-    const entity = this.entitiesById.get(id);
+    const entity = this.entityById.get(id);
     if (!entity) {
       throw EntityNotExistsError;
     }
@@ -65,20 +65,20 @@ export class EntitiesMemoryStorage<E extends Identifiable> implements EntitiesRe
   async save(entity: E): Promise<E> {
     const nextId = this.idSequence + 1;
     entity.id = nextId;
-    this.entitiesById.set(nextId, entity);
+    this.entityById.set(nextId, entity);
     this.idSequence++;
     return entity;
   }
 
   async update(entity: E): Promise<E> {
-    if (!this.entitiesById.has(entity.id)) {
+    if (!this.entityById.has(entity.id)) {
       throw EntityNotExistsError;
     }
-    this.entitiesById.set(entity.id, entity);
+    this.entityById.set(entity.id, entity);
     return entity;
   }
 
   async delete(id: number): Promise<void> {
-    this.entitiesById.delete(id);
+    this.entityById.delete(id);
   }
 }
