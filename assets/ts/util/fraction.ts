@@ -28,7 +28,7 @@ export class Fraction implements _Number {
     const sepPos = number.indexOf(sep);
     if (sepPos !== -1) {
       const integerPart = number.substring(0, sepPos) || "0";
-      const decimalPart = number.substring(sepPos + 1).replace(/0+$/, "");
+      const decimalPart = number.substring(sepPos + 1).replace(/0+$/, "") || "0";
       const isNegative = number[0] === '-'
       const denominator = Math.pow(10, decimalPart.length);
       const numerator = parseInt(integerPart) * denominator + parseInt(decimalPart) * (isNegative ? -1 : 1)

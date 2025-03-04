@@ -138,6 +138,18 @@ describe('Fraction', () => {
         const frac = Fraction.fromDecimal('2.500', '.');
         expect(frac.numerator.toString()).toBe('5');
         expect(frac.denominator.toString()).toBe('2');
+
+        const frac2 = Fraction.fromDecimal('2.000', '.');
+        expect(frac2.numerator.toString()).toBe('2');
+        expect(frac2.denominator.toString()).toBe('1');
+
+        const frac3 = Fraction.fromDecimal('2,1000', ',');
+        expect(frac3.numerator.toString()).toBe('21');
+        expect(frac3.denominator.toString()).toBe('10');
+
+        const frac4 = Fraction.fromDecimal('2,000', ',');
+        expect(frac4.numerator.toString()).toBe('2');
+        expect(frac4.denominator.toString()).toBe('1');
       });
 
       it('debería manejar números negativos correctamente', () => {
@@ -152,6 +164,10 @@ describe('Fraction', () => {
         const frac3 = Fraction.fromDecimal('-3.75', '.');
         expect(frac3.numerator.toString()).toBe('-15');
         expect(frac3.denominator.toString()).toBe('4');
+
+        const frac4 = Fraction.fromDecimal('-5.000', '.');
+        expect(frac4.numerator.toString()).toBe('-5');
+        expect(frac4.denominator.toString()).toBe('1');
       });
     })
     describe('Suma de fracciones con signos', () => {
@@ -335,7 +351,7 @@ function it(description: string, fn: () => void) {
       console.log(`✓ ${description}`);
   } catch (error) {
       console.error(`✗ ${description}`);
-      //console.error(error);
+      console.error(error);
   }
 }
 
