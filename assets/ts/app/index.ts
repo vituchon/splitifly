@@ -1,7 +1,7 @@
 import * as app from "./app";
 import * as api from "./../model/api/api";
 import { Group, Participant } from "../model/group";
-import { Movement } from "../model/movement";
+import { buildParticipantsTransferMovements, Movement, TransferMovement } from "../model/movement";
 import { newPrice, parsePrice, Price, stringifyPrice, zeroValue } from "../model/price";
 interface UIGroup extends Group {
   participants: Participant[];
@@ -56,6 +56,7 @@ async function renderGroups(appState: app.State) {
           `).join('')}
         </ol>
         <button class="open-movement-modal-btn">Cargar Movimiento<br/>➕💰</button>
+        <button class="open-transfer-modal-btn">Cargar Transferencia<br/>➕💵</button>
       </div>
       <div style="align-self: flex-start;">
         <div>👥 Participantes</div>
@@ -127,6 +128,10 @@ document.querySelector("#add-movement-modal button.close").addEventListener("cli
   closeMovementModal()
 })
 
+document.querySelector("#add-transfer-modal button.close").addEventListener("click", () => {
+  closeTransferModal()
+})
+
 document.getElementById('add-participant-movement-confirm-btn').onclick = () => {
   addParticipantMovement();
 }
@@ -167,6 +172,13 @@ document.getElementById("group-list").addEventListener("click", (event) => {
     const groupElement = target.closest(".group") as HTMLElement;
     const groupId = +groupElement.dataset.groupId
     openMovementModal(groupId, app.state);
+    event.preventDefault();
+    event.stopPropagation()
+  }
+  if (target.matches(".open-transfer-modal-btn")) {
+    const groupElement = target.closest(".group") as HTMLElement;
+    const groupId = +groupElement.dataset.groupId
+    openTransferModal(groupId, app.state);
     event.preventDefault();
     event.stopPropagation()
   }
@@ -268,6 +280,50 @@ document.getElementById('add-movement-confirm-btn').addEventListener('click', as
   closeMovementModal()
 });
 
+
+document.getElementById('add-transfer-confirm-btn').addEventListener('click', async () => {
+  const modal = document.getElementById('add-transfer-modal');
+  const concept = (document.getElementById('transfer-concept-input') as HTMLInputElement).value;
+  const amount = (document.getElementById('transfer-price-input') as HTMLInputElement).value;
+  const fromSelect = document.getElementById('from-participant-transfer-selector') as HTMLSelectElement;
+  const toSelect = document.getElementById('to-participant-transfer-selector') as HTMLSelectElement;
+
+  const fromParticipantId = +fromSelect.value;
+  const toParticipantId = +toSelect.value;
+  if (!fromParticipantId || !toParticipantId || fromParticipantId === toParticipantId) {
+    alert("Se tienen que seleccionar dos participantes distintos.")
+    return
+  }
+
+  // TODO: creo que tengo que extender la api! de acá abajo hay aoepraciones que son propias del dominio del problema
+  const groupId = +modal.dataset.groupId
+  const transferMovement: TransferMovement = {
+    id: undefined,
+    groupId: groupId,
+    createdAt: undefined,
+    amount: parsePrice(amount),
+    concept: concept,
+    fromParticipantId: fromParticipantId,
+    toParticipantId: toParticipantId,
+  };
+
+  try {
+    const participantMovements = buildParticipantsTransferMovements(transferMovement);
+    const movement: api.Movement = {
+      groupId: transferMovement.groupId,
+      amount: transferMovement.amount,
+      concept: concept,
+      participantMovements: participantMovements
+    };
+    const m = await app.addMovement(movement);
+    console.log('Transfer added successfully:', m);
+  } catch (error) {
+    console.error('Error adding transfer:', error);
+  }
+
+  closeTransferModal()
+});
+
 function openParticipantModal(groupId: number) {
   const modal = document.getElementById('add-participant-modal');
   modal.dataset.groupId = groupId.toString();
@@ -279,6 +335,13 @@ function openMovementModal(groupId: number, appState: app.State) {
   modal.dataset.groupId = groupId.toString();
   setupParticipantMovementModal(groupId, appState);
   toggleModal('add-movement-modal');
+}
+
+function openTransferModal(groupId: number, appState: app.State) {
+  const modal = document.getElementById('add-transfer-modal');
+  modal.dataset.groupId = groupId.toString();
+  setupParticipantTransferModal(groupId, appState);
+  toggleModal('add-transfer-modal');
 }
 
 interface HTMLParticipant extends Participant {
@@ -294,9 +357,21 @@ interface HTMLMovementModal extends HTMLElement {
 async function setupParticipantMovementModal(groupId: number, appState: app.State) {
   const modal = document.getElementById('add-movement-modal') as HTMLMovementModal
   modal.__selectedParticipants = {};
-  const select = document.getElementById('participant-movement-selector') as HTMLSelectElement;
-  select.innerHTML = `<option value="">Participante...</option>`;
   const participants = await app.fetchParticipants(groupId);
+  await populateParticipantSelect('participant-movement-selector', participants, "Participante...");
+}
+
+async function setupParticipantTransferModal(groupId: number, appState: app.State) {
+  const modal = document.getElementById('add-transfer-modal') as HTMLMovementModal;
+  modal.__selectedParticipants = {};
+  const participants = await app.fetchParticipants(groupId);
+  await populateParticipantSelect('from-participant-transfer-selector', participants,"De participante..");
+  await populateParticipantSelect('to-participant-transfer-selector', participants,"A participante...");
+}
+
+async function populateParticipantSelect(selectId: string, participants: Participant[], placeholder: string) {
+  const select = document.getElementById(selectId) as HTMLSelectElement;
+  select.innerHTML = `<option value="">${placeholder}</option>`;
   (participants || []).forEach(participant => {
     addParticipantToSelect(select, participant);
   });
@@ -356,6 +431,15 @@ function closeMovementModal() {
   renderGroups(app.state);
 }
 
+
+function closeTransferModal() {
+  (document.getElementById('transfer-price-input') as HTMLInputElement).value = "";
+  (document.getElementById('transfer-concept-input') as HTMLInputElement).value = "";
+  toggleModal('add-transfer-modal');
+  renderGroups(app.state);
+}
+
+
 async function openAggregatedBalancesModal(groupId: number, appState: app.State) {
   const aggregatedBalance = await app.requestAggregatedBalances(groupId)
 
@@ -399,6 +483,7 @@ async function openAggregatedBalancesModal(groupId: number, appState: app.State)
     })
     .join('');
 
+  // TODO: creo que tengo que extender la api! isGroupSettled es un operación que corresponde modelizarla dentro dominio puro del problema (no en la UI)
   const isGroupSettled = sharesArray.reduce((acc, [participantId, amount]) => {
     return acc && amount.equals(zeroValue())
   }, true)

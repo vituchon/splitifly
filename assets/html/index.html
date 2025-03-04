@@ -136,6 +136,32 @@
         </div>
       </div>
 
+
+      <div id="add-transfer-modal" class="modal">
+        <div class="modal-content">
+          <h2>Agregar transferencia</h2>
+          <div class="vertical-layout">
+            <input id="transfer-concept-input" style="width: auto;" type="text" placeholder="Concepto de la transferencia">
+            <input id="transfer-price-input" type="number" placeholder="Monto...">
+
+            <div class="horizontal-layout" style="margin-bottom: 1em;">
+              <select id="from-participant-transfer-selector">
+              </select>
+              <span font-size="2em">➡️</span>
+              <select id="to-participant-transfer-selector">
+              </select>
+            </div>
+
+            <div class="horizontal-layout" style="margin-bottom: 2em;">
+              <div style="flex-grow: 2;"></div>
+              <button id="add-transfer-confirm-btn" class="color-button">OK</button>
+              &nbsp;
+              <button class="color-button close">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="display-aggregated-balance-modal" class="modal">
         <div class="modal-content cat-background">
           <h2 style="margin-bottom: 0;">Matriz de deudas</h2>
