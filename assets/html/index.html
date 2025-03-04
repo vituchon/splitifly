@@ -101,18 +101,18 @@
       <div id="add-movement-modal" class="modal">
         <div class="modal-content">
           <h2 style="margin-bottom: 0px;">Agregar Movimiento</h2>
-          <a href="#" style="color: black; font-size: 0.7em;" onclick="document.getElementById('add-movement-help').style.display = 'block';this.style.display = 'none';">¿Como cargo un movimiento? 🆘</a>
+          <a href="#" style="color: black; font-size: 0.7em;" onclick="document.getElementById('add-movement-help').style.display = 'block';this.style.display = 'none';">¿Cómo cargo un movimiento?</a>
           <div id="add-movement-help" style="max-width: 20em; display: none; text-align: justify;">
             <span style="font-size: 0.7em;">
-              <span><b>Seleccioná un participante e ingresá el monto con el que contribuyó en este movimiento.</b> Si no contribuyo pero igual se benefició, poné como valor un 0.</span><br>
-              <span>⚠️<b>El monto total se calcula automáticamente</b> sumando los aportes de cada participante. Se asume que todos los involucrados deben pagar partes iguales.</span><br>
-              <span><i>Por ejemplo, si el movimiento es de 500 entre dos, a cada uno le corresponde pagar 250. Si es de 900 entre tres, a cada uno le corresponde pagar 300.</i></span><br>
+              <span><b>Seleccioná un participante e ingresá el monto con el que contribuyó en este movimiento.</b> Si no contribuyó pero igual se benefició, poné en contribución un 0 (pues no hizo aporte alguno).</span><br>
+              <span>⚠️<b>El monto total se calcula automáticamente</b> sumando los aportes de cada participante. Se asume que todos los involucrados deben pagar lo mismo (partes iguales).</span>
+              <span><i>Por ejemplo, si el monto total del movimiento es de 500 entre dos, a cada uno le corresponde pagar 250. Si el monto total del movimiento de 900 entre tres, a cada uno le corresponde pagar 300.</i></span><br>
               <span>⚠️<b>Se necesitan al menos dos participantes</b>. Los que se excluyan no serán afectados por este movimiento.</span>
             </span>
           </div>
           <div class="vertical-layout">
             <input id="movement-concept-input" style="width: auto;" type="text" placeholder="Concepto del movimiento">
-            <input id="movement-price-input" style="width: auto;" type="number" disabled placeholder="Monto total">
+            <input id="movement-price-input" style="width: auto;" type="text" disabled placeholder="Monto total">
 
             <div id="participant-movement-list" class="vertical-layout" style="margin-bottom: 1em;">
             </div>
@@ -139,7 +139,7 @@
       <div id="display-aggregated-balance-modal" class="modal">
         <div class="modal-content cat-background">
           <h2 style="margin-bottom: 0;">Matriz de deudas</h2>
-          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('debts-matrix-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta matriz? 🆘</a>
+          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('debts-matrix-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta matriz?</a>
           <div id="debts-matrix-help" style="max-width: 20em; display: none; text-align: justify;">
             <span style="font-size: 0.7em;">El participante de cada fila <b>debe</b> al participante de la columna el valor correspondiente a la celda.</span>
           </div>
@@ -153,7 +153,7 @@
           </table>
 
           <h2 style="margin-bottom: 0;">Balances</h2>
-          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('balances-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta tablita? 🆘</a>
+          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('balances-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta tablita?</a>
           <div id="balances-help" style="max-width: 20em; display: none; text-align: justify;">
             <span style="font-size: 0.7em;">Se enumera cuanto tiene de saldo a favor (+) o en contra (-) cada participante.</span>
           </div>

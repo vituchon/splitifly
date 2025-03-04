@@ -29,7 +29,7 @@ async function renderGroups(appState: app.State) {
         const details = participantsMovements.reduce((acc, participantMovement, index, array) => {
           const participantString = `${appState.participantById[participantMovement.participantId].name}: ${stringifyPrice(participantMovement.amount)}`;
           if (index < array.length - 1) {
-            return acc + participantString + ", ";
+            return acc + participantString + "<br/> ";
           }
           return acc + participantString;
         }, '');
@@ -43,12 +43,14 @@ async function renderGroups(appState: app.State) {
       <button class="remove-group-btn" data-group-id="${group.id}">❌</button>
       <div style="align-self: flex-start;">
         <div>💰 Movimientos</div>
-        <ol id="movements-list-${group.id}">
+        <ol style="padding-inline-start: 1em;" id="movements-list-${group.id}">
           ${(group.movements || []).map(movement => `
-            <li>
-              <span style="color: grey;">${formatUnixTimestamp(movement.createdAt)}</span><br/>
-              <b style="color: blue;">${movement.concept}</b> (total $${stringifyPrice(movement.amount)})<br/>
-              ${movementDetailsByMovementId[movement.id]}
+            <li style="display: flex; align-items: center; justify-content: space-between; margin: 0.5em 0;">
+              <div>
+                <!-- <span style="color: grey;">${formatUnixTimestamp(movement.createdAt)}</span><br/> -->
+                <b style="color: blue;">${movement.concept}</b> (total ${stringifyPrice(movement.amount)})<br/>
+                ${movementDetailsByMovementId[movement.id]}
+              </div>
               <button class="remove-movement-btn" data-movement-id="${movement.id}">❌</button>
             </li>
           `).join('')}
@@ -57,9 +59,9 @@ async function renderGroups(appState: app.State) {
       </div>
       <div style="align-self: flex-start;">
         <div>👥 Participantes</div>
-        <ul id="participant-list-${group.id}">
+        <ul style="padding-inline-start: 1em;" id="participant-list-${group.id}">
           ${(group.participants || []).map(participant => `
-            <li>
+            <li style="display: flex; align-items: center; justify-content: space-between; margin: 0.5em 0;">
               <span>${participant.name}</span>
               <button class="remove-participant-btn" data-participant-id="${participant.id}">❌</button>
             </li>
@@ -318,7 +320,7 @@ function addParticipantMovement() {
     alert('Por favor, seleccioná un participante y especificá una contribución.');
     return;
   }
-  const participantShare = parsePrice(priceInput.value.trim());
+  const participantShare = parsePrice(priceInput.value.trim().replace(/\./g, ","));
   // add to list
   const participantName = select.options[select.selectedIndex].text;
   modal.__selectedParticipants[participantId] = { id: participantId, name: participantName, price: participantShare, groupId: undefined };
@@ -328,7 +330,7 @@ function addParticipantMovement() {
   listItem.dataset.participantId = participantId.toString()
   listItem.dataset.price = stringifyPrice(participantShare)
   listItem.innerHTML = `
-    <span>${participantName} (id: ${participantId}): $${stringifyPrice(participantShare)}</span>
+    <span>${participantName} (id: ${participantId}): ${stringifyPrice(participantShare)}</span>
     <button class="remove-btn">❌</button>
   `;
   listItem.querySelector('.remove-btn').addEventListener('click', () => {
@@ -373,7 +375,7 @@ async function openAggregatedBalancesModal(groupId: number, appState: app.State)
     let row = `<tr><td>${appState.participantById[fromId].name}</td>`;
     participantIds.forEach(toId => {
       if (fromId === toId) {
-        row += '<td>X</td>';
+        row += '<td>-</td>';
       } else {
         const amount = balance.get(fromId)?.get(toId) || zeroValue();
         row += `<td>${stringifyPrice(amount)}</td>`;

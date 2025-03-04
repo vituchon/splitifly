@@ -62,11 +62,19 @@ export function fromJsonNumber(value: any) {
 }
 
 export function parsePrice(number: string): Price {
-  return Fraction.fromDecimal(number, ".")
+  number = number.replace(/\./g, "").replace(/\$/g,"").trim();
+  return Fraction.fromDecimal(number, ",")
 }
 
+const amountFormatter = new Intl.NumberFormat("es-AR", {
+  style: "currency",
+  currency: "ARS",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
 export function stringifyPrice(amount: Price): string {
-  return amount.toNumber().toString()
+  return amountFormatter.format(amount.toNumber())
 }
 
 export function zeroValue(): Price {
