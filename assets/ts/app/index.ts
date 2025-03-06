@@ -1,7 +1,7 @@
 import * as app from "./app";
 import * as api from "./../model/api/api";
 import { Group, Participant } from "../model/group";
-import { buildParticipantsTransferMovements, Movement, TransferMovement } from "../model/movement";
+import { buildParticipantTransferMovements, Movement, TransferMovement } from "../model/movement";
 import { newPrice, parsePrice, Price, stringifyPrice, zeroValue } from "../model/price";
 interface UIGroup extends Group {
   participants: Participant[];
@@ -309,7 +309,7 @@ document.getElementById('add-transfer-confirm-btn').addEventListener('click', as
   };
 
   try {
-    const participantMovements = buildParticipantsTransferMovements(transferMovement);
+    const participantMovements = buildParticipantTransferMovements(transferMovement);
     const movement: api.Movement = {
       groupId: transferMovement.groupId,
       amount: transferMovement.amount,

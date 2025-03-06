@@ -1,9 +1,9 @@
 import { _Number } from '../util/number';
-import { Movement, TransferMovement, ParticipantMovement, ParticipantShareByParticipantId, DebitCreditMap } from './movement';
+import { Movement, ParticipantMovement, ParticipantShareByParticipantId, DebitCreditMap, MovementType, isTransferMovement } from './movement';
 import {
-    buildParticipantsEqualShare,
+    buildParticipantsExpenseShare,
     buildParticipantsTransferShare,
-    buildParticipantsTransferMovements,
+    buildParticipantTransferMovements,
     ensureMovementAmountMatchesParticipantAmounts,
     ensureSharesSumToZero,
     buildDebitCreditMap,
@@ -13,37 +13,44 @@ import {
 import { newPrice } from './price';
 
 describe('Movement Calculations', () => {
-    describe('calculateDebitCreditMapForEqualShare', () => {
-        const tests = [
+    describe('calculateDebitCreditMapForExpenseShare', () => {
+        const tests: {
+          name: string;
+          movement: Movement;
+          participantMovements: ParticipantMovement[];
+          expected: Map<number, Map<number, _Number>>;
+        }[] = [
             {
                 name: "Movement fully covered by participant 1, resulting in participant 2 owing",
                 movement: {
                     id: 1,
+                    type: MovementType.expense,
                     amount: newPrice(1000),
                     createdAt: 0,
                     concept: "Test",
                     groupId: 1
-                } as Movement,
+                },
                 participantMovements: [
                     { id: 1, participantId: 1, movementId: 1, amount: newPrice(1000) },
                     { id: 2, participantId: 2, movementId: 1, amount: newPrice(0) }
-                ] as ParticipantMovement[],
+                ],
                 expected: new Map([[2, new Map([[1, newPrice(500)]])]])
             },
             {
                 name: "Three participants with uneven distribution",
                 movement: {
                     id: 1,
+                    type: MovementType.expense,
                     amount: newPrice(900),
                     createdAt: 0,
                     concept: "Test",
                     groupId: 1
-                } as Movement,
+                },
                 participantMovements: [
                     { id: 1, participantId: 1, movementId: 1, amount: newPrice(900) },
                     { id: 2, participantId: 2, movementId: 1, amount: newPrice(0) },
                     { id: 3, participantId: 3, movementId: 1, amount: newPrice(0) }
-                ] as ParticipantMovement[],
+                ],
                 expected: new Map([
                     [2, new Map([[1, newPrice(300)]])],
                     [3, new Map([[1, newPrice(300)]])]
@@ -53,15 +60,16 @@ describe('Movement Calculations', () => {
                 name: "Two participants split payment",
                 movement: {
                     id: 1,
+                    type: MovementType.expense,
                     amount: newPrice(1000),
                     createdAt: 0,
                     concept: "Test",
                     groupId: 1
-                } as Movement,
+                },
                 participantMovements: [
                     { id: 1, participantId: 1, movementId: 1, amount: newPrice(600) },
                     { id: 2, participantId: 2, movementId: 1, amount: newPrice(400) }
-                ] as ParticipantMovement[],
+                ] ,
                 expected: new Map([[2, new Map([[1, newPrice(100)]])]])
             }
         ];
@@ -69,7 +77,7 @@ describe('Movement Calculations', () => {
         tests.forEach(test => {
             it(test.name, () => {
                 ensureMovementAmountMatchesParticipantAmounts(test.movement, test.participantMovements);
-                const participantShareByParticipantId = buildParticipantsEqualShare(test.movement, test.participantMovements);
+                const participantShareByParticipantId = buildParticipantsExpenseShare(test.movement, test.participantMovements);
                 ensureSharesSumToZero(participantShareByParticipantId);
                 const generated = buildDebitCreditMap(test.participantMovements, participantShareByParticipantId);
                 expect(areDebitCreditMapsEqual(generated, test.expected)).toBe(true);
@@ -79,8 +87,9 @@ describe('Movement Calculations', () => {
 
     describe('Transfer movements', () => {
         it('should create correct transfer share', () => {
-            const movement: TransferMovement = {
+            const movement: Movement = {
                 id: 1,
+                type: MovementType.transfer,
                 groupId: 1,
                 createdAt: 0,
                 amount: newPrice(1000),
@@ -96,8 +105,9 @@ describe('Movement Calculations', () => {
         });
 
         it('should create correct transfer participant movements', () => {
-            const movement: TransferMovement = {
+            const movement: Movement = {
                 id: 1,
+                type: MovementType.transfer,
                 groupId: 1,
                 createdAt: 0,
                 amount: newPrice(1000),
@@ -106,7 +116,7 @@ describe('Movement Calculations', () => {
                 toParticipantId: 2
             };
 
-            const participantMovements = buildParticipantsTransferMovements(movement);
+            const participantMovements = buildParticipantTransferMovements(movement);
             expect(newPrice(participantMovements.length)).toBe(newPrice(2));
             expect(participantMovements[0].amount).toBe(newPrice(1000));
             expect(participantMovements[1].amount).toBe(newPrice(0));
@@ -137,18 +147,24 @@ describe('Movement Calculations', () => {
 
 
 describe('CalculateDebitCreditMapForTransfer', () => {
-    const tests = [
+    const tests: {
+        name: string;
+        movement: Movement;
+        shares: Map<number, _Number>;
+        expected: Map<number, Map<number, _Number>>;
+    }[] = [
         {
             name: "Participant 1 transfer to participant 2, participant 2 (receiver) owes participant 1 (emitter)",
-            transferMovement: {
+            movement: {
                 id: 1,
+                type: MovementType.transfer,
                 amount: newPrice(1000),
                 createdAt: 0,
                 concept: "Test",
                 groupId: 1,
                 fromParticipantId: 1,
                 toParticipantId: 2
-            } as TransferMovement,
+            },
             shares: new Map([
                 [1, newPrice(1000)],
                 [2, newPrice(-1000)]
@@ -159,13 +175,17 @@ describe('CalculateDebitCreditMapForTransfer', () => {
 
     tests.forEach(test => {
         it(test.name, () => {
-            const participantMovements = buildParticipantsTransferMovements(test.transferMovement);
-            ensureMovementAmountMatchesParticipantAmounts(test.transferMovement, participantMovements);
-            const participantShareByParticipantId = buildParticipantsTransferShare(test.transferMovement);
+          if (isTransferMovement(test.movement)) {
+            const participantMovements = buildParticipantTransferMovements(test.movement);
+            ensureMovementAmountMatchesParticipantAmounts(test.movement, participantMovements);
+            const participantShareByParticipantId = buildParticipantsTransferShare(test.movement);
             ensureSharesSumToZero(participantShareByParticipantId);
             expect(areParticipantSharesEqual(participantShareByParticipantId, test.shares)).toBe(true);
             const generated = buildDebitCreditMap(participantMovements, participantShareByParticipantId);
             expect(areDebitCreditMapsEqual(generated, test.expected)).toBe(true);
+          } else {
+            console.error("must be a transfer movement!");
+          }
         });
     });
 });

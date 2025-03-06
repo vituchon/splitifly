@@ -1,30 +1,36 @@
 import { newPrice, Price, zeroValue } from './price';
 
-type MovementType = "shared-expense" | "transfer"
+export enum MovementType {
+  expense = "expense" ,
+  transfer = "transfer"
+}
+
+// si necesito valores
+// const movementOptions = Object.values(MovementType); // ["expense", "transfer"]
 
 export interface BaseMovement {
   id: number;
+  type: MovementType;
   groupId: number;
   createdAt: number;
   amount: Price;
   concept: string;
-  type: MovementType;
 }
 
-export interface SharedExpenseMovement extends BaseMovement {
-  type: "shared-expense"; 
+export interface ExpenseMovement extends BaseMovement {
+  type: MovementType.expense;
 }
 
 export interface TransferMovement extends BaseMovement {
-  type:  "transfer";
+  type:  MovementType.transfer;
   fromParticipantId: number;
   toParticipantId: number;
 }
 
-type Movement = SharedExpenseMovement | TransferMovement;
+export type Movement = ExpenseMovement | TransferMovement;
 
 export function isTransferMovement(movement: Movement): movement is TransferMovement {
-  return movement.type === "transfer"
+  return movement.type === MovementType.transfer
 }
 
 export interface ParticipantMovement {
@@ -42,7 +48,7 @@ export interface BalanceSheet {
   getDebt(participantId: number): number;
 }
 
-export function buildParticipantsEqualShare(movement: Movement, participantMovements: ParticipantMovement[]): ParticipantShareByParticipantId {
+export function buildParticipantsExpenseShare(movement: Movement, participantMovements: ParticipantMovement[]): ParticipantShareByParticipantId {
   const equalShare = movement.amount.divide(newPrice(participantMovements.length))
   const participantShareByParticipantId = new Map<number, Price>();
 
@@ -60,7 +66,7 @@ export function buildParticipantsTransferShare(movement: TransferMovement): Part
   return participantShareByParticipantId;
 }
 
-export function buildParticipantsTransferMovements(movement: TransferMovement): ParticipantMovement[] {
+export function buildParticipantTransferMovements(movement: TransferMovement): ParticipantMovement[] {
   return [
       { id: 0, participantId: movement.fromParticipantId, movementId: movement.id, amount: movement.amount }, // gives full amount
       { id: 0, participantId: movement.toParticipantId, movementId: movement.id, amount: newPrice(0) }, // gives nothing

@@ -1,5 +1,5 @@
 import { Group, Participant as ModelParticipant} from '../group';
-import { BaseMovement as ModelMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsEqualShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare } from '../movement';
+import { Movement as ModelMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsExpenseShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare, MovementType } from '../movement';
 import { Price } from '../price';
 import { EntitiesRepository, Collection } from '../../repositories/common';
 import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage';
@@ -118,6 +118,7 @@ export async function addMovement(movement: Movement): Promise<[ModelMovement, M
 
     const m: ModelMovement = {
         id: 0,
+        type: MovementType.expense,
         groupId: movement.groupId,
         amount: movement.amount,
         createdAt: Math.floor(Date.now() / 1000),
@@ -153,7 +154,8 @@ export async function calculateAggregatedBalances(groupId: number): Promise<[Deb
         const participantMovements = await participantMovementsRepository.getByMovementId(movement.id);
 
         ensureMovementAmountMatchesParticipantAmounts(movement, participantMovements);
-        const participantShareByParticipantId = buildParticipantsEqualShare(movement, participantMovements);
+        //const participantShareByParticipantId = buildParticipantsExpenseShare(movement, participantMovements);
+        const participantShareByParticipantId = buildParticipantsExpenseShare(movement, participantMovements);
         ensureSharesSumToZero(participantShareByParticipantId);
 
         accumulatedShare = sumParticipantShares(accumulatedShare, participantShareByParticipantId);
@@ -175,7 +177,7 @@ export async function calculateBalance(groupId: number, movementId: number): Pro
     if (isTransferMovement(movement)) {
         shares = buildParticipantsTransferShare(movement);
     } else {
-        shares = buildParticipantsEqualShare(movement, participantMovements);
+        shares = buildParticipantsExpenseShare(movement, participantMovements);
     }
     ensureSharesSumToZero(shares);
 
