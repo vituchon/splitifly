@@ -299,6 +299,7 @@ document.getElementById('add-transfer-confirm-btn').addEventListener('click', as
   const groupId = +modal.dataset.groupId
   const transferMovement: TransferMovement = {
     id: undefined,
+    type: "transfer",
     groupId: groupId,
     createdAt: undefined,
     amount: parsePrice(amount),
@@ -315,7 +316,7 @@ document.getElementById('add-transfer-confirm-btn').addEventListener('click', as
       concept: concept,
       participantMovements: participantMovements
     };
-    const m = await app.addMovement(movement);
+    const m = await app.addMovement(movement); // TODO: el tema es que  despues el a la hora de generar el balance usaria movements de tipo Movement
     console.log('Transfer added successfully:', m);
   } catch (error) {
     console.error('Error adding transfer:', error);

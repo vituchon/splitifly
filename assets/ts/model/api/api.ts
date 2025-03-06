@@ -1,5 +1,5 @@
 import { Group, Participant as ModelParticipant} from '../group';
-import { Movement as ModelMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsEqualShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares } from '../movement';
+import { BaseMovement as ModelMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsEqualShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare } from '../movement';
 import { Price } from '../price';
 import { EntitiesRepository, Collection } from '../../repositories/common';
 import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage';
@@ -171,7 +171,12 @@ export async function calculateBalance(groupId: number, movementId: number): Pro
     const participantMovements = await participantMovementsRepository.getByMovementId(movement.id);
 
     ensureMovementAmountMatchesParticipantAmounts(movement, participantMovements);
-    const shares = buildParticipantsEqualShare(movement, participantMovements);
+    let shares: ParticipantShareByParticipantId;
+    if (isTransferMovement(movement)) {
+        shares = buildParticipantsTransferShare(movement);
+    } else {
+        shares = buildParticipantsEqualShare(movement, participantMovements);
+    }
     ensureSharesSumToZero(shares);
 
     const balance = buildDebitCreditMap(participantMovements, shares);

@@ -1,16 +1,30 @@
 import { newPrice, Price, zeroValue } from './price';
 
-export interface Movement {
+type MovementType = "shared-expense" | "transfer"
+
+export interface BaseMovement {
   id: number;
   groupId: number;
-  createdAt: number; // unix timestamp, in seconds since epoch
+  createdAt: number;
   amount: Price;
   concept: string;
+  type: MovementType;
 }
 
-export interface TransferMovement extends Movement {
+export interface SharedExpenseMovement extends BaseMovement {
+  type: "shared-expense"; 
+}
+
+export interface TransferMovement extends BaseMovement {
+  type:  "transfer";
   fromParticipantId: number;
   toParticipantId: number;
+}
+
+type Movement = SharedExpenseMovement | TransferMovement;
+
+export function isTransferMovement(movement: Movement): movement is TransferMovement {
+  return movement.type === "transfer"
 }
 
 export interface ParticipantMovement {
