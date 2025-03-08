@@ -98,11 +98,11 @@
         </div>
       </div>
 
-      <div id="add-movement-modal" class="modal">
+      <div id="add-expense-movement-modal" class="modal">
         <div class="modal-content">
           <h2 style="margin-bottom: 0px;">Agregar Movimiento</h2>
-          <a href="#" style="color: black; font-size: 0.7em;" onclick="document.getElementById('add-movement-help').style.display = 'block';this.style.display = 'none';">¿Cómo cargo un movimiento?</a>
-          <div id="add-movement-help" style="max-width: 20em; display: none; text-align: justify;">
+          <a href="#" style="color: black; font-size: 0.7em;" onclick="document.getElementById('add-expense-movement-help').style.display = 'block';this.style.display = 'none';">¿Cómo cargo un movimiento?</a>
+          <div id="add-expense-movement-help" style="max-width: 20em; display: none; text-align: justify;">
             <span style="font-size: 0.7em;">
               <span><b>Seleccioná un participante e ingresá el monto con el que contribuyó en este movimiento.</b> Si no contribuyó pero igual se benefició, poné en contribución un 0 (pues no hizo aporte alguno).</span><br>
               <span>⚠️<b>El monto total se calcula automáticamente</b> sumando los aportes de cada participante. Se asume que todos los involucrados deben pagar lo mismo (partes iguales).</span>
@@ -111,24 +111,51 @@
             </span>
           </div>
           <div class="vertical-layout">
-            <input id="movement-concept-input" style="width: auto;" type="text" placeholder="Concepto del movimiento">
-            <input id="movement-price-input" style="width: auto;" type="text" disabled placeholder="Monto total">
+            <input id="expense-movement-concept-input" style="width: auto;" type="text" placeholder="Concepto del movimiento">
+            <input id="expense-movement-total-amount-input" style="width: auto;" type="text" disabled placeholder="Monto total">
 
-            <div id="participant-movement-list" class="vertical-layout" style="margin-bottom: 1em;">
+            <div id="participant-expense-movement-list" class="vertical-layout" style="margin-bottom: 1em;">
             </div>
 
             <div class="horizontal-layout" style="margin-bottom: 1em;">
               <select id="participant-movement-selector">
               </select>
               <span>&nbsp;</span>
-              <input id="participant-movement-price-input" type="number" placeholder="Contribución...">
+              <input id="participant-expense-movement-total-amount-input" type="number" placeholder="Contribución...">
               <span style="flex-grow: 2;"></span>
               <button id="add-participant-movement-confirm-btn" class="color-button">Agregar</button>
             </div>
 
             <div class="horizontal-layout" style="margin-bottom: 2em;">
               <div style="flex-grow: 2;"></div>
-              <button id="add-movement-confirm-btn" class="color-button">OK</button>
+              <button id="add-expense-movement-confirm-btn" class="color-button">OK</button>
+              &nbsp;
+              <button class="color-button close">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div id="add-transfer-movement-modal" class="modal">
+        <div class="modal-content">
+          <h2>Agregar transferencia</h2>
+          <div class="vertical-layout">
+            <!-- Dev notes: intentionally hidden input --><input id="transfer-movement-concept-input" style="width: auto; display: none;" type="text" placeholder="Concepto de la transferencia">
+            <input id="transfer-movement-amount-input" style="width: auto;" type="number" placeholder="Ingresá monto...">
+            <div style="margin-bottom: 1em;"></div>
+
+            <div class="horizontal-layout" style="margin-bottom: 1em;">
+              <select id="transfer-movement-from-participant-selector">
+              </select>
+              <span font-size="2em">➡️</span>
+              <select id="transfer-movement-to-participant-selector">
+              </select>
+            </div>
+
+            <div class="horizontal-layout" style="margin-bottom: 2em;">
+              <div style="flex-grow: 2;"></div>
+              <button id="add-transfer-movement-confirm-btn" class="color-button">OK</button>
               &nbsp;
               <button class="color-button close">Cancel</button>
             </div>
@@ -138,19 +165,6 @@
 
       <div id="display-aggregated-balance-modal" class="modal">
         <div class="modal-content cat-background">
-          <h2 style="margin-bottom: 0;">Matriz de deudas</h2>
-          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('debts-matrix-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta matriz?</a>
-          <div id="debts-matrix-help" style="max-width: 20em; display: none; text-align: justify;">
-            <span style="font-size: 0.7em;">El participante de cada fila <b>debe</b> al participante de la columna el valor correspondiente a la celda.</span>
-          </div>
-          <table id="balance-table" border="1">
-            <thead>
-              <tr id="balance-header-row">
-                <th>Participante</th>
-              </tr>
-            </thead>
-            <tbody id="balance-body"></tbody>
-          </table>
 
           <h2 style="margin-bottom: 0;">Balances</h2>
           <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('balances-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta tablita?</a>
@@ -166,8 +180,23 @@
             </thead>
             <tbody id="shares-body"></tbody>
           </table>
+
+          <h2 style="margin-bottom: 0;">Matriz de deudas</h2>
+          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('debts-matrix-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta matriz?</a>
+          <div id="debts-matrix-help" style="max-width: 20em; display: none; text-align: justify;">
+            <span style="font-size: 0.7em;">El participante de cada fila <b>debe</b> al participante de la columna el valor correspondiente a la celda.</span>
+          </div>
+          <table id="balance-table" border="1">
+            <thead>
+              <tr id="balance-header-row">
+                <th>Participante</th>
+              </tr>
+            </thead>
+            <tbody id="balance-body"></tbody>
+          </table>
+
           <h3 id="balanced-title" style="color: yellow; background-color: black;">¡El grupo está balanceado!<br/><span style="font-size: 0.8em;">Las cuentas están saldadas ⚖️🙆🏿</span></h3>
-          <button class="color-button close">Cerrar</button>
+          <button class="color-button close" style="background-color: black; font-weight: bold; margin-top: 0.5em;">Cerrar</button>
         </div>
       </div>
     </body>

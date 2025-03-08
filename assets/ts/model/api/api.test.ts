@@ -1,7 +1,7 @@
 import {
     createGroup,
     addParticipant,
-    addMovement,
+    addExpenseMovement,
     calculateAggregatedBalances,
     calculateBalance
 } from './api';
@@ -68,7 +68,7 @@ describe('API Integration Tests', () => {
             ];
 
             const addedMovements = await Promise.all(
-                movements.map(m => addMovement(m))
+                movements.map(m => addExpenseMovement(m))
             );
 
             // Calculate and verify balances
@@ -143,7 +143,7 @@ describe('API Integration Tests', () => {
 
             for (const test of tests) {
                 console.log(test.name);
-                const [movement] = await addMovement(test.movement);
+                const [movement] = await addExpenseMovement(test.movement);
                 const [generatedMap, generatedShares] = await calculateBalance(group.id, movement.id);
 
                 expect(areDebitCreditMapsEqual(generatedMap, test.expectedMap)).toBe(true);
