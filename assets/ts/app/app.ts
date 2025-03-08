@@ -172,9 +172,24 @@ export async function fetchMovements(groupId: number) {
   }
 }
 
-export async function addMovement(movement: api.Movement) {
+export async function addExpenseMovement(movement: api.ExpenseMovement) {
   try {
-    const [m, pms] = await api.addMovement(movement);
+    const [m, pms] = await api.addExpenseMovement(movement);
+    state.movementById[m.id] = m
+    state.participantMovementById = (pms || []).reduce((acc, pm) => {
+      acc[pm.id] = pm
+      return acc;
+    }, state.participantMovementById);
+    return m
+  } catch (error) {
+    console.error('Error adding movement:', error);
+    throw error;
+  }
+}
+
+export async function addTransferMovement(transferMovement: api.TransferMovement) {
+  try {
+    const [m, pms] = await api.addTransferMovement(transferMovement);
     state.movementById[m.id] = m
     state.participantMovementById = (pms || []).reduce((acc, pm) => {
       acc[pm.id] = pm

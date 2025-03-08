@@ -1,5 +1,5 @@
 import { Group, Participant as ModelParticipant} from '../group';
-import { Movement as ModelMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsExpenseShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare, MovementType } from '../movement';
+import { Movement as ModelMovement, TransferMovement as ModelTransferMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsExpenseShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare, MovementType, buildParticipantTransferMovements } from '../movement';
 import { Price } from '../price';
 import { EntitiesRepository, Collection } from '../../repositories/common';
 import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage';
@@ -94,41 +94,41 @@ export async function deleteMovement(movementId: number): Promise<void> {
   await movementsRepository.delete(movementId)
 }
 
-export interface ParticipantMovement {
+export interface ExpenseParticipantMovement {
   participantId: number;
   amount: Price;
 }
 
-export interface Movement {
+export interface ExpenseMovement {
   groupId: number;
   amount: Price;
   concept: string;
-  participantMovements: ParticipantMovement[];
+  participantMovements: ExpenseParticipantMovement[];
 }
 
-export async function addMovement(movement: Movement): Promise<[ModelMovement, ModelParticipantMovement[]]> {
-    await groupsRepository.getById(movement.groupId);
+export async function addExpenseMovement(expenseMovement: ExpenseMovement): Promise<[ModelMovement, ModelParticipantMovement[]]> {
+    await groupsRepository.getById(expenseMovement.groupId);
 
-    for (const participantMovement of movement.participantMovements) {
+    for (const participantMovement of expenseMovement.participantMovements) {
         const participant = await participantsRepository.getById(participantMovement.participantId);
-        if (participant.groupId !== movement.groupId) {
-            throw new Error(`Participant(id='${participant.id}') doesn't belong to movement's group(id='${movement.groupId}')`);
+        if (participant.groupId !== expenseMovement.groupId) {
+            throw new Error(`Participant(id='${participant.id}') doesn't belong to movement's group(id='${expenseMovement.groupId}')`);
         }
     }
 
     const m: ModelMovement = {
         id: 0,
         type: MovementType.expense,
-        groupId: movement.groupId,
-        amount: movement.amount,
+        groupId: expenseMovement.groupId,
+        amount: expenseMovement.amount,
         createdAt: Math.floor(Date.now() / 1000),
-        concept: movement.concept
+        concept: expenseMovement.concept
     };
 
     const savedMovement = await movementsRepository.save(m);
 
     const pms: ModelParticipantMovement[] = [];
-    for (const participantMovement of movement.participantMovements) {
+    for (const participantMovement of expenseMovement.participantMovements) {
         const pm: ModelParticipantMovement = {
             id: 0,
             movementId: savedMovement.id,
@@ -142,6 +142,40 @@ export async function addMovement(movement: Movement): Promise<[ModelMovement, M
     return [savedMovement, pms];
 }
 
+export interface TransferMovement {
+  groupId: number;
+  amount: Price;
+  concept: string;
+  fromParticipantId: number;
+  toParticipantId: number;
+}
+
+export async function addTransferMovement(transferMovement: TransferMovement): Promise<[ModelMovement, ModelParticipantMovement[]]> {
+  await groupsRepository.getById(transferMovement.groupId);
+
+  const m: ModelTransferMovement = {
+      id: 0,
+      type: MovementType.transfer,
+      concept: transferMovement.concept || "Transferencia",
+      groupId: transferMovement.groupId,
+      amount: transferMovement.amount,
+      createdAt: Math.floor(Date.now() / 1000),
+      fromParticipantId: transferMovement.fromParticipantId,
+      toParticipantId: transferMovement.toParticipantId,
+  };
+
+  const savedMovement = await movementsRepository.save(m);
+
+  const pms: ModelParticipantMovement[] = [];
+  const participantMovements = buildParticipantTransferMovements(m);
+  for (const pm of participantMovements) {
+      const savedPm = await participantMovementsRepository.save(pm);
+      pms.push(savedPm);
+  }
+  return [savedMovement, pms];
+}
+
+
 export async function calculateAggregatedBalances(groupId: number): Promise<[DebitCreditMap, ParticipantShareByParticipantId]> {
     await groupsRepository.getById(groupId);
 
@@ -154,8 +188,12 @@ export async function calculateAggregatedBalances(groupId: number): Promise<[Deb
         const participantMovements = await participantMovementsRepository.getByMovementId(movement.id);
 
         ensureMovementAmountMatchesParticipantAmounts(movement, participantMovements);
-        //const participantShareByParticipantId = buildParticipantsExpenseShare(movement, participantMovements);
-        const participantShareByParticipantId = buildParticipantsExpenseShare(movement, participantMovements);
+        let participantShareByParticipantId: ParticipantShareByParticipantId;
+        if (isTransferMovement(movement)) {
+          participantShareByParticipantId = buildParticipantsTransferShare(movement);
+        } else {
+          participantShareByParticipantId = buildParticipantsExpenseShare(movement, participantMovements);
+        }
         ensureSharesSumToZero(participantShareByParticipantId);
 
         accumulatedShare = sumParticipantShares(accumulatedShare, participantShareByParticipantId);
@@ -173,16 +211,16 @@ export async function calculateBalance(groupId: number, movementId: number): Pro
     const participantMovements = await participantMovementsRepository.getByMovementId(movement.id);
 
     ensureMovementAmountMatchesParticipantAmounts(movement, participantMovements);
-    let shares: ParticipantShareByParticipantId;
+    let participantShareByParticipantId: ParticipantShareByParticipantId;
     if (isTransferMovement(movement)) {
-        shares = buildParticipantsTransferShare(movement);
+        participantShareByParticipantId = buildParticipantsTransferShare(movement);
     } else {
-        shares = buildParticipantsExpenseShare(movement, participantMovements);
+        participantShareByParticipantId = buildParticipantsExpenseShare(movement, participantMovements);
     }
-    ensureSharesSumToZero(shares);
+    ensureSharesSumToZero(participantShareByParticipantId);
 
-    const balance = buildDebitCreditMap(participantMovements, shares);
-    return [balance, shares];
+    const balance = buildDebitCreditMap(participantMovements, participantShareByParticipantId);
+    return [balance, participantShareByParticipantId];
 }
 
 

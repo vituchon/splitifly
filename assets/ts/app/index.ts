@@ -1,8 +1,9 @@
 import * as app from "./app";
 import * as api from "./../model/api/api";
 import { Group, Participant } from "../model/group";
-import { buildParticipantTransferMovements, Movement, TransferMovement } from "../model/movement";
-import { newPrice, parsePrice, Price, stringifyPrice, zeroValue } from "../model/price";
+import { Movement } from "../model/movement";
+import { parsePrice, Price, stringifyPrice, zeroValue } from "../model/price";
+
 interface UIGroup extends Group {
   participants: Participant[];
   movements: Movement[];
@@ -41,24 +42,25 @@ async function renderGroups(appState: app.State) {
     groupDiv.innerHTML = `
       <b>${group.name}</b>
       <button class="remove-group-btn" data-group-id="${group.id}">❌</button>
-      <div style="align-self: flex-start;">
+      <div style="display: flex; flex-direction: column; align-self: flex-start;">
         <div>💰 Movimientos</div>
         <ol style="padding-inline-start: 1em;" id="movements-list-${group.id}">
           ${(group.movements || []).map(movement => `
             <li style="display: flex; align-items: center; justify-content: space-between; margin: 0.5em 0;">
               <div>
                 <!-- <span style="color: grey;">${formatUnixTimestamp(movement.createdAt)}</span><br/> -->
-                <b style="color: blue;">${movement.concept}</b> (total ${stringifyPrice(movement.amount)})<br/>
+                <b style="color: blue;">${movement.concept}</b>: ${stringifyPrice(movement.amount)}<br/>
                 ${movementDetailsByMovementId[movement.id]}
               </div>
               <button class="remove-movement-btn" data-movement-id="${movement.id}">❌</button>
             </li>
           `).join('')}
         </ol>
-        <button class="open-movement-modal-btn">Cargar Movimiento<br/>➕💰</button>
-        <button class="open-transfer-modal-btn">Cargar Transferencia<br/>➕💵</button>
+        <button class="open-movement-modal-btn">Agregar Gasto<br/>➕🧾</button>
+        &nbsp;
+        <button class="open-transfer-modal-btn">Agregar Transferencia<br/>➕➡️</button>
       </div>
-      <div style="align-self: flex-start;">
+      <div style="display: flex; flex-direction: column; align-self: flex-start;">
         <div>👥 Participantes</div>
         <ul style="padding-inline-start: 1em;" id="participant-list-${group.id}">
           ${(group.participants || []).map(participant => `
@@ -108,7 +110,7 @@ document.getElementById('add-group-confirm-btn').addEventListener('click',async 
     toggleModal('add-group-modal');
     renderGroups(app.state);
   } else {
-    alert('El nombre del grupo no puede estar vacio');
+    alert('El nombre del grupo no puede estar vacio 😤');
   }
 });
 
@@ -124,16 +126,16 @@ document.querySelector("#add-participant-modal button.close").addEventListener("
   toggleModal('add-participant-modal')
 })
 
-document.querySelector("#add-movement-modal button.close").addEventListener("click", () => {
-  closeMovementModal()
+document.querySelector("#add-expense-movement-modal button.close").addEventListener("click", () => {
+  closeExpenseMovementModal()
 })
 
-document.querySelector("#add-transfer-modal button.close").addEventListener("click", () => {
-  closeTransferModal()
+document.querySelector("#add-transfer-movement-modal button.close").addEventListener("click", () => {
+  closeTransferMovementModal()
 })
 
 document.getElementById('add-participant-movement-confirm-btn').onclick = () => {
-  addParticipantMovement();
+  addParticipantExpenseMovement();
 }
 
 (document.querySelector('#display-aggregated-balance-modal button.close') as HTMLButtonElement).onclick = () => {
@@ -154,7 +156,7 @@ document.getElementById('add-participant-confirm-btn').addEventListener('click',
       alert(error)
     }
   } else {
-    alert('El nombre del participante no puede estar vacio');
+    alert('El nombre del participante no puede estar vacio 😤');
   }
 });
 
@@ -171,14 +173,14 @@ document.getElementById("group-list").addEventListener("click", (event) => {
   if (target.matches(".open-movement-modal-btn")) {
     const groupElement = target.closest(".group") as HTMLElement;
     const groupId = +groupElement.dataset.groupId
-    openMovementModal(groupId, app.state);
+    openExpenseMovementModal(groupId, app.state);
     event.preventDefault();
     event.stopPropagation()
   }
   if (target.matches(".open-transfer-modal-btn")) {
     const groupElement = target.closest(".group") as HTMLElement;
     const groupId = +groupElement.dataset.groupId
-    openTransferModal(groupId, app.state);
+    openTransferMovementModal(groupId, app.state);
     event.preventDefault();
     event.stopPropagation()
   }
@@ -243,17 +245,17 @@ async function deleteMovement(movementId: number) {
   }
 }
 
-document.getElementById('add-movement-confirm-btn').addEventListener('click', async () => {
-  const modal = document.getElementById('add-movement-modal');
-  const concept = (document.getElementById('movement-concept-input') as HTMLInputElement).value;
-  const totalAmount = (document.getElementById('movement-price-input') as HTMLInputElement).value;
-  const items = Array.from(document.getElementById('participant-movement-list').children) as HTMLElement[]
+document.getElementById('add-expense-movement-confirm-btn').addEventListener('click', async () => {
+  const modal = document.getElementById('add-expense-movement-modal');
+  const concept = (document.getElementById('expense-movement-concept-input') as HTMLInputElement).value;
+  const totalAmount = (document.getElementById('expense-movement-total-amount-input') as HTMLInputElement).value;
+  const items = Array.from(document.getElementById('participant-expense-movement-list').children) as HTMLElement[]
   if (!concept || (items.length || 0) < 2) {
-    alert("Por favor, carga el concepto y al menos dos contribuciones")
+    alert("Por favor, carga el concepto y al menos dos contribuciones 😤")
     return
   }
 
-  const participantMovements: api.ParticipantMovement[] = [];
+  const participantMovements: api.ExpenseParticipantMovement[] = [];
   for (let item of items) {
     const participantId = item.dataset.participantId;
     const price = parsePrice(item.dataset.price)
@@ -263,7 +265,7 @@ document.getElementById('add-movement-confirm-btn').addEventListener('click', as
     });
   }
   const groupId = +modal.dataset.groupId
-  const movement: api.Movement = {
+  const movement: api.ExpenseMovement = {
     groupId: groupId,
     amount: parsePrice(totalAmount),
     concept: concept,
@@ -271,58 +273,52 @@ document.getElementById('add-movement-confirm-btn').addEventListener('click', as
   };
 
   try {
-    const m = await app.addMovement(movement);
-    console.log('Movement added successfully:', m);
+    const m = await app.addExpenseMovement(movement);
+    console.log('Expense added successfully:', m);
   } catch (error) {
-    console.error('Error adding movement:', error);
+    console.error('Error adding expense:', error);
   }
 
-  closeMovementModal()
+  closeExpenseMovementModal()
 });
 
 
-document.getElementById('add-transfer-confirm-btn').addEventListener('click', async () => {
-  const modal = document.getElementById('add-transfer-modal');
-  const concept = (document.getElementById('transfer-concept-input') as HTMLInputElement).value;
-  const amount = (document.getElementById('transfer-price-input') as HTMLInputElement).value;
-  const fromSelect = document.getElementById('from-participant-transfer-selector') as HTMLSelectElement;
-  const toSelect = document.getElementById('to-participant-transfer-selector') as HTMLSelectElement;
+document.getElementById('add-transfer-movement-confirm-btn').addEventListener('click', async () => {
+  const modal = document.getElementById('add-transfer-movement-modal');
+  //const concept = (document.getElementById('transfer-movement-concept-input') as HTMLInputElement).value;
+  const amount = (document.getElementById('transfer-movement-amount-input') as HTMLInputElement).value;
+  if (!amount) {
+    alert("Tenés que ingresar un monto 😤")
+    return
+  }
+  const fromSelect = document.getElementById('transfer-movement-from-participant-selector') as HTMLSelectElement;
+  const toSelect = document.getElementById('transfer-movement-to-participant-selector') as HTMLSelectElement;
 
   const fromParticipantId = +fromSelect.value;
   const toParticipantId = +toSelect.value;
   if (!fromParticipantId || !toParticipantId || fromParticipantId === toParticipantId) {
-    alert("Se tienen que seleccionar dos participantes distintos.")
+    alert("Tenés que seleccionar dos participantes distintos 😤")
     return
   }
 
   // TODO: creo que tengo que extender la api! de acá abajo hay aoepraciones que son propias del dominio del problema
   const groupId = +modal.dataset.groupId
-  const transferMovement: TransferMovement = {
-    id: undefined,
-    type: "transfer",
+  const transferMovement: api.TransferMovement = {
     groupId: groupId,
-    createdAt: undefined,
-    amount: parsePrice(amount),
-    concept: concept,
+    amount: parsePrice(amount.trim().replace(/\./g, ",")),
+    concept: "",
     fromParticipantId: fromParticipantId,
     toParticipantId: toParticipantId,
   };
 
   try {
-    const participantMovements = buildParticipantTransferMovements(transferMovement);
-    const movement: api.Movement = {
-      groupId: transferMovement.groupId,
-      amount: transferMovement.amount,
-      concept: concept,
-      participantMovements: participantMovements
-    };
-    const m = await app.addMovement(movement); // TODO: el tema es que  despues el a la hora de generar el balance usaria movements de tipo Movement
+    const m = await app.addTransferMovement(transferMovement);
     console.log('Transfer added successfully:', m);
   } catch (error) {
     console.error('Error adding transfer:', error);
   }
 
-  closeTransferModal()
+  closeTransferMovementModal()
 });
 
 function openParticipantModal(groupId: number) {
@@ -331,18 +327,18 @@ function openParticipantModal(groupId: number) {
   toggleModal('add-participant-modal');
 }
 
-function openMovementModal(groupId: number, appState: app.State) {
-  const modal = document.getElementById('add-movement-modal');
+function openExpenseMovementModal(groupId: number, appState: app.State) {
+  const modal = document.getElementById('add-expense-movement-modal');
   modal.dataset.groupId = groupId.toString();
-  setupParticipantMovementModal(groupId, appState);
-  toggleModal('add-movement-modal');
+  setupParticipantExpenseMovementModal(groupId, appState);
+  toggleModal('add-expense-movement-modal');
 }
 
-function openTransferModal(groupId: number, appState: app.State) {
-  const modal = document.getElementById('add-transfer-modal');
+function openTransferMovementModal(groupId: number, appState: app.State) {
+  const modal = document.getElementById('add-transfer-movement-modal');
   modal.dataset.groupId = groupId.toString();
-  setupParticipantTransferModal(groupId, appState);
-  toggleModal('add-transfer-modal');
+  setupParticipantTransferMovementModal(groupId, appState);
+  toggleModal('add-transfer-movement-modal');
 }
 
 interface HTMLParticipant extends Participant {
@@ -355,19 +351,19 @@ interface HTMLMovementModal extends HTMLElement {
   }
 }
 
-async function setupParticipantMovementModal(groupId: number, appState: app.State) {
-  const modal = document.getElementById('add-movement-modal') as HTMLMovementModal
+async function setupParticipantExpenseMovementModal(groupId: number, appState: app.State) {
+  const modal = document.getElementById('add-expense-movement-modal') as HTMLMovementModal
   modal.__selectedParticipants = {};
   const participants = await app.fetchParticipants(groupId);
   await populateParticipantSelect('participant-movement-selector', participants, "Participante...");
 }
 
-async function setupParticipantTransferModal(groupId: number, appState: app.State) {
-  const modal = document.getElementById('add-transfer-modal') as HTMLMovementModal;
+async function setupParticipantTransferMovementModal(groupId: number, appState: app.State) {
+  const modal = document.getElementById('add-transfer-movement-modal') as HTMLMovementModal;
   modal.__selectedParticipants = {};
   const participants = await app.fetchParticipants(groupId);
-  await populateParticipantSelect('from-participant-transfer-selector', participants,"De participante..");
-  await populateParticipantSelect('to-participant-transfer-selector', participants,"A participante...");
+  await populateParticipantSelect('transfer-movement-from-participant-selector', participants,"De participante..");
+  await populateParticipantSelect('transfer-movement-to-participant-selector', participants,"A participante...");
 }
 
 async function populateParticipantSelect(selectId: string, participants: Participant[], placeholder: string) {
@@ -385,15 +381,15 @@ function addParticipantToSelect(select: HTMLSelectElement, participant: Particip
   select.appendChild(option);
 }
 
-function addParticipantMovement() {
-  const modal = document.getElementById('add-movement-modal') as HTMLMovementModal;
+function addParticipantExpenseMovement() {
+  const modal = document.getElementById('add-expense-movement-modal') as HTMLMovementModal;
   const select = document.getElementById('participant-movement-selector') as HTMLSelectElement;
-  const priceInput = document.getElementById('participant-movement-price-input') as HTMLInputElement
-  const list = document.getElementById('participant-movement-list');
+  const priceInput = document.getElementById('participant-expense-movement-total-amount-input') as HTMLInputElement
+  const list = document.getElementById('participant-expense-movement-list');
 
   const participantId = +select.value;
   if (!participantId || !priceInput.value) {
-    alert('Por favor, seleccioná un participante y especificá una contribución.');
+    alert('Por favor, seleccioná un participante y especificá una contribución 😤');
     return;
   }
   const participantShare = parsePrice(priceInput.value.trim().replace(/\./g, ","));
@@ -419,24 +415,24 @@ function addParticipantMovement() {
 
   priceInput.value = '';
   select.remove(select.selectedIndex);
-  const totalPriceInput = document.getElementById('movement-price-input')as HTMLInputElement
+  const totalPriceInput = document.getElementById('expense-movement-total-amount-input')as HTMLInputElement
   totalPriceInput.value = stringifyPrice(parsePrice(totalPriceInput.value || "0").add(participantShare))
 }
 
-function closeMovementModal() {
-  const list = document.getElementById('participant-movement-list');
+function closeExpenseMovementModal() {
+  const list = document.getElementById('participant-expense-movement-list');
   list.innerHTML = "";
-  (document.getElementById('movement-price-input') as HTMLInputElement).value = "";
-  (document.getElementById('movement-concept-input') as HTMLInputElement).value = "";
-  toggleModal('add-movement-modal');
+  (document.getElementById('expense-movement-total-amount-input') as HTMLInputElement).value = "";
+  (document.getElementById('expense-movement-concept-input') as HTMLInputElement).value = "";
+  toggleModal('add-expense-movement-modal');
   renderGroups(app.state);
 }
 
 
-function closeTransferModal() {
-  (document.getElementById('transfer-price-input') as HTMLInputElement).value = "";
-  (document.getElementById('transfer-concept-input') as HTMLInputElement).value = "";
-  toggleModal('add-transfer-modal');
+function closeTransferMovementModal() {
+  (document.getElementById('transfer-movement-amount-input') as HTMLInputElement).value = "";
+  (document.getElementById('transfer-movement-concept-input') as HTMLInputElement).value = "";
+  toggleModal('add-transfer-movement-modal');
   renderGroups(app.state);
 }
 
