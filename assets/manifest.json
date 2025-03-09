@@ -1,0 +1,21 @@
+{
+  "name": "Splitifly",
+  "short_name": "Splitifly",
+  "start_url": "/assets/html/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff",
+  "description": "La vitu app para dividir gastos",
+  "icons": [
+    {
+      "src": "/assets/images/catty.jpg",
+      "sizes": "192x192",
+      "type": "image/jpg"
+    },
+    {
+      "src": "/assets/images/catty.jpg",
+      "sizes": "512x512",
+      "type": "image/jpg"
+    }
+  ]
+}
