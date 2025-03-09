@@ -3,6 +3,7 @@
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="manifest" href="/assets/manifest.json">
       <title>Splitifly</title>
       <link rel="icon" type="image/x-icon" href="https://fonts.gstatic.com/s/e/notoemoji/15.1/1f4b8/512.png=s60">
       <link href="/assets/css/main.css" rel="stylesheet" >
@@ -199,6 +200,13 @@
           <button class="color-button close" style="background-color: black; font-weight: bold; margin-top: 0.5em;">Cerrar</button>
         </div>
       </div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/assets/js/service-worker.js')
+          .then(() => console.log("Service Worker registrado."))
+          .catch(err => console.error("Error registrando Service Worker:", err));
+      }
+    </script>
     </body>
     <script type="module" src="/assets/js/app/index.js"></script>
 </html>
