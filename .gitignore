@@ -1,3 +1,4 @@
 node_modules
 splitifly
 js
+!assets/js/service-worker.js

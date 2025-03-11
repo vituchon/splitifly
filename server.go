@@ -44,6 +44,9 @@ func buildRouter() *mux.Router {
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(NoMatchingHandler)
 
+	// tratamiento especial para el service worker pues tiene que tener header Service-Worker-Allowed
+	router.HandleFunc("/assets/js/service-worker.js", ServeServiceWorker).Methods("GET")
+
 	fileServer := http.FileServer(http.Dir("./assets"))
 	//router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", fileServer))
 	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +68,12 @@ func buildRouter() *mux.Router {
 
 	return router
 }
+
+func ServeServiceWorker(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Service-Worker-Allowed", "/")
+	http.ServeFile(w, r, "./assets/js/service-worker.js")
+}
+
 
 // Helper function para añadir headers CORS
 func addCORS(next http.HandlerFunc) http.HandlerFunc {
