@@ -101,12 +101,12 @@
 
       <div id="add-expense-movement-modal" class="modal">
         <div class="modal-content">
-          <h2 style="margin-bottom: 0px;">Agregar Movimiento</h2>
-          <a href="#" style="color: black; font-size: 0.7em;" onclick="document.getElementById('add-expense-movement-help').style.display = 'block';this.style.display = 'none';">¿Cómo cargo un movimiento?</a>
+          <h2 style="margin-bottom: 0px;">Agregar Gasto</h2>
+          <a href="#" style="color: black; font-size: 0.7em;" onclick="document.getElementById('add-expense-movement-help').style.display = 'block';this.style.display = 'none';">¿Cómo cargo un gasto?</a>
           <div id="add-expense-movement-help" style="max-width: 20em; display: none; text-align: justify;">
             <span style="font-size: 0.7em;">
               <span><b>Seleccioná un participante e ingresá el monto con el que contribuyó en este movimiento.</b> Si no contribuyó pero igual se benefició, poné en contribución un 0 (pues no hizo aporte alguno).</span><br>
-              <span>⚠️<b>El monto total se calcula automáticamente</b> sumando los aportes de cada participante. Se asume que todos los involucrados deben pagar lo mismo (partes iguales).</span>
+              <span>⚠️<b>El monto total se calcula automáticamente</b> sumando los aportes de cada participante. Se considera que todos los involucrados deben pagar lo mismo (partes iguales).</span>
               <span><i>Por ejemplo, si el monto total del movimiento es de 500 entre dos, a cada uno le corresponde pagar 250. Si el monto total del movimiento de 900 entre tres, a cada uno le corresponde pagar 300.</i></span><br>
               <span>⚠️<b>Se necesitan al menos dos participantes</b>. Los que se excluyan no serán afectados por este movimiento.</span>
             </span>
@@ -201,11 +201,27 @@
         </div>
       </div>
     <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/assets/js/service-worker.js')
-          .then(() => console.log("Service Worker registrado."))
-          .catch(err => console.error("Error registrando Service Worker:", err));
-      }
+      const registerServiceWorker = async () => {
+        if ('serviceWorker' in navigator) {
+          try {
+            const registration = await navigator.serviceWorker.register(
+              '/assets/js/service-worker.js', {
+                scope: '/',
+              }
+            );
+            if (registration.installing) {
+              console.log('Service worker installing');
+            } else if (registration.waiting) {
+              console.log('Service worker installed');
+            } else if (registration.active) {
+              console.log('Service worker active');
+            }
+          } catch (error) {
+            console.error(`Registration failed with ${error}`);
+          }
+        }
+      };
+      registerServiceWorker();
     </script>
     </body>
     <script type="module" src="/assets/js/app/index.js"></script>
