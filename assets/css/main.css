@@ -10,16 +10,14 @@ body {
 }
 
 button {
-  padding: 5px 10px;
+  padding: 0.4em;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
 #group-list {
-  width: 100%;
-  max-width: 500px;
-  margin: 20px auto;
+  max-width: 95vw;
 }
 
 .group {
@@ -79,7 +77,6 @@ button {
   background: white;
   padding: 20px;
   border-radius: 10px;
-  max-width: 90%;
   text-align: center;
 }
 
@@ -115,4 +112,25 @@ button {
   background-size: cover;
   color: white;
   font-size: 1.25em;
+}
+
+.remove-movement-btn, .show-movement-detail-btn {
+  cursor: pointer;
+}
+
+/*
+.movement-summary {
+  display: inline-block;
+  max-width: 6em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}*/
+
+.movement-summary {
+  display: block; /* Permite que el texto se ajuste en varias líneas */
+  max-width: 11em; /* Limita el ancho máximo */
+  overflow: hidden; /* Oculta el exceso de texto */
+  text-overflow: ellipsis; /* Muestra los puntos suspensivos */
+  word-break: break-word; /* Rompe palabras si es necesario */
 }

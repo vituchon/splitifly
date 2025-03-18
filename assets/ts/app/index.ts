@@ -40,18 +40,27 @@ async function renderGroups(appState: app.State) {
     const groupDiv = document.createElement('div');
     groupDiv.className = 'group';
     groupDiv.innerHTML = `
-      <b>${group.name}</b>
-      <button class="remove-group-btn" data-group-id="${group.id}">❌</button>
+      <div class="vertical-layout">
+        <div class="horizontal-layout">
+          <b>${group.name}</b>
+          <div style="flex-grow:2; min-width: 1em;"></div>
+          <button class="remove-group-btn" data-group-id="${group.id}">❌</button><br/>
+        </div>
+        <button class="open-aggregated-balances-modal-btn" style="margin-top: 0.5em;">Calcular balances<br/>🧮📊</button>
+      </div>
       <div style="display: flex; flex-direction: column; align-self: flex-start;">
-        <div>💰 Movimientos</div>
+        <div>💰 Movimientos <small>(<strong>${group.movements.length || 0}</strong>)</small></div>
         <ol style="padding-inline-start: 1em;" id="movements-list-${group.id}">
           ${(group.movements || []).map(movement => `
-            <li style="display: flex; align-items: center; justify-content: space-between; margin: 0.5em 0;">
+            <li style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.5em;">
               <div>
                 <!-- <span style="color: grey;">${formatUnixTimestamp(movement.createdAt)}</span><br/> -->
-                <b style="color: blue;">${movement.concept}</b>: ${stringifyPrice(movement.amount)}<br/>
-                ${movementDetailsByMovementId[movement.id]}
+                <!-- <span class="movement-summary">${movement.concept} <span>(${stringifyPrice(movement.amount)})</span></span> -->
+                <a href="#" onclick="document.getElementById('movement-detail-${movement.id}').style.display = 'inline';" class="movement-summary">${movement.concept} <span>(${stringifyPrice(movement.amount)})</span></a>
+                <span id="movement-detail-${movement.id}"style="display: none;">${movementDetailsByMovementId[movement.id]}</span>
               </div>
+              <div style="flex-grow:2; min-width: 1em;"></div>
+              <!-- <span class="show-movement-detail-btn" onclick="document.getElementById('movement-detail-${movement.id}').style.display = 'inline'; this.style.display = 'none';">👀</span> -->
               <button class="remove-movement-btn" data-movement-id="${movement.id}">❌</button>
             </li>
           `).join('')}
@@ -61,19 +70,16 @@ async function renderGroups(appState: app.State) {
         <button class="open-transfer-modal-btn">Agregar Transferencia<br/>➕➡️</button>
       </div>
       <div style="display: flex; flex-direction: column; align-self: flex-start;">
-        <div>👥 Participantes</div>
+        <div>👥 Participantes <small>(<strong>${group.participants.length || 0}</strong>)</small></div>
         <ul style="padding-inline-start: 1em;" id="participant-list-${group.id}">
           ${(group.participants || []).map(participant => `
-            <li style="display: flex; align-items: center; justify-content: space-between; margin: 0.5em 0;">
+            <li style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.5em;">
               <span>${participant.name}</span>
               <button class="remove-participant-btn" data-participant-id="${participant.id}">❌</button>
             </li>
           `).join('')}
         </ul>
         <button class="open-participant-modal-btn">Agregar Participante<br/>➕👥</button>
-      </div>
-      <div>
-        <button class="open-aggregated-balances-modal-btn">Calcular balances<br/>🧮📊</button>
       </div>
     `;
     groupDiv.dataset.groupId = group.id.toString()
@@ -192,10 +198,13 @@ document.getElementById("group-list").addEventListener("click", (event) => {
     event.stopPropagation()
   }
   if (target.matches(".remove-group-btn")) {
-    const groupId = +target.dataset.groupId
-    deleteGroup(groupId)
-    event.preventDefault();
-    event.stopPropagation()
+    const confirmDelete = window.confirm("¿Seguro que querés borrar el grupo? Esta acción NO tiene vuelta atrás.")
+    if (confirmDelete) {
+      const groupId = +target.dataset.groupId
+      deleteGroup(groupId)
+      event.preventDefault();
+      event.stopPropagation()
+    }
   }
   if (target.matches(".remove-movement-btn")) {
     const movementId = +target.dataset.movementId

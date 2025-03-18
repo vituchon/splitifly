@@ -156,7 +156,7 @@ export async function addTransferMovement(transferMovement: TransferMovement): P
   const m: ModelTransferMovement = {
       id: 0,
       type: MovementType.transfer,
-      concept: transferMovement.concept || "Transferencia",
+      concept: transferMovement.concept,
       groupId: transferMovement.groupId,
       amount: transferMovement.amount,
       createdAt: Math.floor(Date.now() / 1000),
