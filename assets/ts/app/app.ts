@@ -33,6 +33,14 @@ function loadState(): State {
   }
 }
 
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.error("Error saving state to localStorage:", error);
+  }
+}
+
 const jsonLoader = (key: string, value: any) => {
   if (key === "amount") {
     if (typeof value === 'object') {
@@ -57,10 +65,22 @@ function getDefaultState(): State {
 export const state: State = loadState();
 
 window.addEventListener("beforeunload", () => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (error) {
-    console.error("Error saving state to localStorage:", error);
+  console.log("La app se está cerrando (beforeunload)");
+  saveState()
+});
+
+// android app specific handlers
+window.addEventListener("androidAppDestroy", () => {
+  console.log("La app se está cerrando (androidAppDestroy)");
+  saveState()
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+      console.log("ℹ️ La app pasó a segundo plano.");
+      saveState()
+  } else {
+      console.log("✅ La app está activa.");
   }
 });
 
@@ -189,6 +209,7 @@ export async function addExpenseMovement(movement: api.ExpenseMovement) {
 
 export async function addTransferMovement(transferMovement: api.TransferMovement) {
   try {
+    transferMovement.concept = transferMovement.concept || (state.participantById[transferMovement.fromParticipantId].name + " 👉🏿" + state.participantById[transferMovement.toParticipantId].name )
     const [m, pms] = await api.addTransferMovement(transferMovement);
     state.movementById[m.id] = m
     state.participantMovementById = (pms || []).reduce((acc, pm) => {
