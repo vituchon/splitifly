@@ -158,6 +158,33 @@ export function sumDebitCreditMaps(left: DebitCreditMap, right: DebitCreditMap):
   return result;
 }
 
+export function simplifyDebitCreditMap(debitCreditMap: DebitCreditMap, participantIds: number[]): DebitCreditMap {
+  const map = new Map<number, Map<number, Price>>();
+
+  for (const i of participantIds) {
+    for (const j of participantIds) {
+      if (i >= j) continue;
+      const iOwesJ = debitCreditMap.get(i)?.get(j) || newPrice(0);
+      const jOwesI = debitCreditMap.get(j)?.get(i) || newPrice(0);
+      const net = iOwesJ.subtract(jOwesI); // if iOwesJ is higher than jOwesI, net will be positive, meaning i owes j. If jOwesI is higher than iOwesJ, net will be negative, meaning j owes i.
+
+      if (net.isHigherStrict(zeroValue())) { // i owes j
+        if (!map.has(i)) {
+          map.set(i, new Map<number, Price>());
+        }
+        map.get(i)!.set(j, net);
+      } else if (net.isLowerStrict(zeroValue())) { // j owes i
+        if (!map.has(j)) {
+          map.set(j, new Map<number, Price>());
+        }
+        map.get(j)!.set(i, net.negate());
+      }
+    }
+  }
+
+  return map;
+}
+
 export function sumParticipantShares(left: ParticipantShareByParticipantId, right: ParticipantShareByParticipantId): ParticipantShareByParticipantId {
   const result = new Map<number, Price>();
 

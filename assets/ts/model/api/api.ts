@@ -1,5 +1,5 @@
 import { Group, Participant as ModelParticipant} from '../group';
-import { Movement as ModelMovement, TransferMovement as ModelTransferMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsExpenseShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare, MovementType, buildParticipantTransferMovements } from '../movement';
+import { Movement as ModelMovement, TransferMovement as ModelTransferMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsExpenseShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare, MovementType, buildParticipantTransferMovements, simplifyDebitCreditMap } from '../movement';
 import { Price } from '../price';
 import { EntitiesRepository, Collection } from '../../repositories/common';
 import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage';
@@ -176,8 +176,8 @@ export async function addTransferMovement(transferMovement: TransferMovement): P
 }
 
 
-export async function calculateAggregatedBalances(groupId: number): Promise<[DebitCreditMap, ParticipantShareByParticipantId]> {
-    await groupsRepository.getById(groupId);
+export async function calculateAggregatedBalances(groupId: number): Promise<[DebitCreditMap, DebitCreditMap, ParticipantShareByParticipantId]> {
+    await groupsRepository.getById(groupId); // validates that group exists by raising an error if it doesn't
 
     const movements = await movementsRepository.getByGroupId(groupId);
 
@@ -202,7 +202,9 @@ export async function calculateAggregatedBalances(groupId: number): Promise<[Deb
         accumulatedBalance = sumDebitCreditMaps(accumulatedBalance, balance);
     }
 
-    return [accumulatedBalance, accumulatedShare];
+    const participantIds =  (await participantsRepository.getByGroupId(groupId)).map(p => p.id);
+    const simplifiedBalance = simplifyDebitCreditMap(accumulatedBalance, participantIds);
+    return [simplifiedBalance, accumulatedBalance, accumulatedShare];
 }
 
 export async function calculateBalance(groupId: number, movementId: number): Promise<[DebitCreditMap, ParticipantShareByParticipantId]> {

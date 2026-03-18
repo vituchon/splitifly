@@ -182,19 +182,28 @@
             <tbody id="shares-body"></tbody>
           </table>
 
-          <h2 style="margin-bottom: 0;">Matriz de deudas</h2>
-          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('debts-matrix-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta matriz?</a>
-          <div id="debts-matrix-help" style="max-width: 20em; display: none; text-align: justify;">
-            <span style="font-size: 0.7em;">El participante de cada fila <b>debe</b> al participante de la columna el valor correspondiente a la celda.</span>
+          <div id="simplified-debts">
+            <h2 style="margin-bottom: 0;">Pagos a realizar</h2>
+            <div id="simplified-debts-list" style="text-align: left; margin: 0.5em 0;"></div>
           </div>
-          <table id="balance-table" border="1">
-            <thead>
-              <tr id="balance-header-row">
-                <th>Participante</th>
-              </tr>
-            </thead>
-            <tbody id="balance-body"></tbody>
-          </table>
+
+          <button id="toggle-debts-view-btn" class="color-button" style="background-color: black; font-weight: bold; margin: 0.5em 0;">Ver detalle</button>
+
+          <div id="detailed-debts" style="display: none;">
+            <h2 style="margin-bottom: 0;">Matriz de deudas</h2>
+            <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('debts-matrix-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta matriz?</a>
+            <div id="debts-matrix-help" style="max-width: 20em; display: none; text-align: justify;">
+              <span style="font-size: 0.7em;">El participante de cada fila <b>debe</b> al participante de la columna el valor correspondiente a la celda.</span>
+            </div>
+            <table id="balance-table" border="1">
+              <thead>
+                <tr id="balance-header-row">
+                  <th>Participante</th>
+                </tr>
+              </thead>
+              <tbody id="balance-body"></tbody>
+            </table>
+          </div>
 
           <h3 id="balanced-title" style="color: yellow; background-color: black;">¡El grupo está balanceado!<br/><span style="font-size: 0.8em;">Las cuentas están saldadas ⚖️🙆🏿</span></h3>
           <button class="color-button close" style="background-color: black; font-weight: bold; margin-top: 0.5em;">Cerrar</button>

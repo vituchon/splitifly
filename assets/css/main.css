@@ -134,3 +134,11 @@ button {
   text-overflow: ellipsis; /* Muestra los puntos suspensivos */
   word-break: break-word; /* Rompe palabras si es necesario */
 }
+
+.simplified-debt-item {
+  padding: 0.4em 0.6em;
+  margin-bottom: 0.3em;
+  background-color: rgba(0, 0, 0, 0.75);
+  border-radius: 6px;
+  font-size: 0.9em;
+}

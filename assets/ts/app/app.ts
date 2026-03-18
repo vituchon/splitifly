@@ -255,8 +255,8 @@ export async function fetchParticipantMovements(movementId: number) {
 
 export async function requestAggregatedBalances(groupId: number) {
   try {
-    const [balance, shares] = await api.calculateAggregatedBalances(groupId);
-    return { balance, shares };
+    const [simplifiedBalance, balance, shares] = await api.calculateAggregatedBalances(groupId);
+    return { simplifiedBalance, balance, shares };
   } catch (error) {
     console.error('Error requesting aggregated balances:', error);
     throw error;
