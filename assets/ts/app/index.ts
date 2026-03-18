@@ -3,6 +3,7 @@ import * as api from "./../model/api/api";
 import { Group, Participant } from "../model/group";
 import { Movement } from "../model/movement";
 import { parsePrice, Price, stringifyPrice, zeroValue } from "../model/price";
+import { DebitCreditMap } from "../model/movement";
 
 interface UIGroup extends Group {
   participants: Participant[];
@@ -147,6 +148,16 @@ document.getElementById('add-participant-movement-confirm-btn').onclick = () => 
 (document.querySelector('#display-aggregated-balance-modal button.close') as HTMLButtonElement).onclick = () => {
   toggleModal('display-aggregated-balance-modal')
 }
+
+document.getElementById('toggle-debts-view-btn').addEventListener('click', () => {
+  const simplified = document.getElementById('simplified-debts');
+  const detailed = document.getElementById('detailed-debts');
+  const btn = document.getElementById('toggle-debts-view-btn');
+  const isSimplifiedVisible = simplified.style.display !== 'none';
+  simplified.style.display = isSimplifiedVisible ? 'none' : 'block';
+  detailed.style.display = isSimplifiedVisible ? 'block' : 'none';
+  btn.textContent = isSimplifiedVisible ? 'Ver resumen' : 'Ver detalle';
+});
 
 document.getElementById('add-participant-confirm-btn').addEventListener('click', async () => {
   const participantNameInput: HTMLInputElement = document.getElementById('participant-name-input') as HTMLInputElement
@@ -446,14 +457,37 @@ function closeTransferMovementModal() {
 }
 
 
+function renderSimplifiedDebts(simplifiedBalance: DebitCreditMap, appState: app.State): string {
+  const items: string[] = [];
+  for (const [fromId, innerMap] of simplifiedBalance.entries()) {
+    for (const [toId, amount] of innerMap.entries()) {
+      if (amount.isHigherStrict(zeroValue())) {
+        const fromName = appState.participantById[fromId].name;
+        const toName = appState.participantById[toId].name;
+        items.push(`<div class="simplified-debt-item"><b>${fromName}</b> le debe <b>${stringifyPrice(amount)}</b> a <b>${toName}</b></div>`);
+      }
+    }
+  }
+  if (items.length === 0) {
+    return '<div class="simplified-debt-item">No hay deudas pendientes</div>';
+  }
+  return items.join('');
+}
+
 async function openAggregatedBalancesModal(groupId: number, appState: app.State) {
   const aggregatedBalance = await app.requestAggregatedBalances(groupId)
 
+  const simplifiedBalance = aggregatedBalance.simplifiedBalance;
   const balance = aggregatedBalance.balance;
   const shares = aggregatedBalance.shares;
 
   const participantIds = Array.from(shares.keys()).map(Number)
 
+  // Render simplified view
+  const simplifiedDebtsList = document.getElementById('simplified-debts-list');
+  simplifiedDebtsList.innerHTML = renderSimplifiedDebts(simplifiedBalance, appState);
+
+  // Render detailed matrix view
   const headerRow = document.getElementById('balance-header-row');
   const participantThs = participantIds.map(id => `<th>${appState.participantById[id].name}</th>`).join("")
   headerRow.innerHTML = '<th>Participante</th>' + participantThs;
@@ -494,6 +528,14 @@ async function openAggregatedBalancesModal(groupId: number, appState: app.State)
     return acc && amount.equals(zeroValue())
   }, true)
   document.getElementById("balanced-title").style.display = (isGroupSettled) ? "block" : "none"
+
+  // Reset toggle state: show simplified, hide detailed
+  document.getElementById('simplified-debts').style.display = 'block';
+  document.getElementById('detailed-debts').style.display = 'none';
+  const toggleBtn = document.getElementById('toggle-debts-view-btn');
+  toggleBtn.textContent = 'Ver detalle';
+  toggleBtn.style.display = (isGroupSettled) ? "none" : "inline-block"
+
   toggleModal("display-aggregated-balance-modal")
 }
 

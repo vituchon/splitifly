@@ -5,7 +5,7 @@ import {
     calculateAggregatedBalances,
     calculateBalance
 } from './api';
-import { Movement, DebitCreditMap, ParticipantShareByParticipantId, sumDebitCreditMaps, sumParticipantShares } from '../movement';
+import { Movement, DebitCreditMap, ParticipantShareByParticipantId, sumDebitCreditMaps, sumParticipantShares, simplifyDebitCreditMap } from '../movement';
 import { newPrice } from '../price';
 import { _Number } from '../../util/number';
 
@@ -72,7 +72,7 @@ describe('API Integration Tests', () => {
             );
 
             // Calculate and verify balances
-            const [generatedBalance, shares] = await calculateAggregatedBalances(group.id);
+            const [, generatedBalance, shares] = await calculateAggregatedBalances(group.id);
 
             const expectedBalance = new Map([
                 [participantId2, new Map([[participantId1, newPrice(100)]])],
@@ -156,6 +156,67 @@ describe('API Integration Tests', () => {
                 expect(areParticipantSharesEqual(accumulatedShares, test.expectedAccumulatedShares)).toBe(true);
             }
         });
+    });
+});
+
+describe('simplifyDebitCreditMap', () => {
+    it('should cancel mutual debts between two participants', () => {
+        // A owes B 500, B owes A 200 → net: A owes B 300
+        const map: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(500)]])],
+            [2, new Map([[1, newPrice(200)]])],
+        ]);
+        const result = simplifyDebitCreditMap(map, [1, 2]);
+        const expected: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(300)]])],
+        ]);
+        expect(areDebitCreditMapsEqual(result, expected)).toBe(true);
+    });
+
+    it('should produce empty map when debts cancel out exactly', () => {
+        // A owes B 300, B owes A 300 → net: nothing
+        const map: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(300)]])],
+            [2, new Map([[1, newPrice(300)]])],
+        ]);
+        const result = simplifyDebitCreditMap(map, [1, 2]);
+        expect(result.size).toBe(0);
+    });
+
+    it('should handle three participants with cross debts', () => {
+        // A→B=100, B→A=400, A→C=200, C→A=50
+        // net A→B: 100-400 = -300 → B owes A 300
+        // net A→C: 200-50 = 150 → A owes C 150
+        // net B→C: 0 → nothing
+        const map: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(100)], [3, newPrice(200)]])],
+            [2, new Map([[1, newPrice(400)]])],
+            [3, new Map([[1, newPrice(50)]])],
+        ]);
+        const result = simplifyDebitCreditMap(map, [1, 2, 3]);
+        const expected: DebitCreditMap = new Map([
+            [2, new Map([[1, newPrice(300)]])],
+            [1, new Map([[3, newPrice(150)]])],
+        ]);
+        expect(areDebitCreditMapsEqual(result, expected)).toBe(true);
+    });
+
+    it('should handle map with no debts (empty map)', () => {
+        const map: DebitCreditMap = new Map();
+        const result = simplifyDebitCreditMap(map, [1, 2, 3]);
+        expect(result.size).toBe(0);
+    });
+
+    it('should keep one-way debts unchanged', () => {
+        // A→B=500, no reverse debt
+        const map: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(500)]])],
+        ]);
+        const result = simplifyDebitCreditMap(map, [1, 2]);
+        const expected: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(500)]])],
+        ]);
+        expect(areDebitCreditMapsEqual(result, expected)).toBe(true);
     });
 });
 
