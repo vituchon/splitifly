@@ -28,8 +28,15 @@ button {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  width: 100%;
+  width: 500px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+@media (max-width: 520px) {
+  .group {
+    width: 95vw;
+  }
 }
 
 .group button {
@@ -39,18 +46,38 @@ button {
 .group-header {
   display: flex;
   align-items: center;
+  padding: 0.6em 1em;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 12px;
+}
+
+.group-title {
+  font-weight: 700;
+  font-size: 1.1em;
+  color: #1565c0;
+}
+
+.group-header .remove-group-btn {
+  background: transparent;
+  border: none;
+  margin-left: 0;
 }
 
 .group-section {
-  border-top: 1px solid #e0e0e0;
   margin-top: 0.5em;
   padding-top: 0.5em;
+  border-top: 1px solid #eee;
 }
 
 .group-section-header {
   cursor: pointer;
   user-select: none;
   padding: 0.3em 0;
+  font-size: 0.85em;
+  color: #007bff;
+  font-weight: 600;
+  letter-spacing: 0.03em;
 }
 
 .group-section-content {
@@ -147,31 +174,301 @@ button {
   font-size: 1.25em;
 }
 
-.remove-movement-btn, .show-movement-detail-btn {
+.remove-movement-btn {
   cursor: pointer;
 }
 
-/*
-.movement-summary {
-  display: inline-block;
-  max-width: 6em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}*/
+.spacer {
+  flex-grow: 2;
+  min-width: 1em;
+}
 
-.movement-summary {
-  display: block; /* Permite que el texto se ajuste en varias líneas */
-  max-width: 11em; /* Limita el ancho máximo */
-  overflow: hidden; /* Oculta el exceso de texto */
-  text-overflow: ellipsis; /* Muestra los puntos suspensivos */
-  word-break: break-word; /* Rompe palabras si es necesario */
+.movement-list {
+  padding-inline-start: 0;
+  list-style: none;
+}
+
+/* Pill/chip movement card */
+.movement-chip {
+  margin-bottom: 0.5em;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: border-radius 0.3s;
+  cursor: pointer;
+  user-select: none;
+}
+.movement-chip.expense { background: #fff8e1; border: 1px solid #ffe082; }
+.movement-chip.transfer { background: #e3f2fd; border: 1px solid #90caf9; }
+.movement-chip.open { border-radius: 12px; }
+
+.movement-chip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5em 1em;
+}
+.movement-chip-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.movement-chip-concept {
+  font-weight: 600;
+  font-size: 0.9em;
+}
+.movement-chip-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.movement-chip-amount {
+  font-size: 0.8em;
+  padding: 0.15em 0.5em;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.08);
+}
+
+.movement-chip-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.35s ease;
+  padding: 0 1em;
+  font-size: 0.83em;
+  color: #555;
+}
+.movement-chip.open .movement-chip-detail {
+  max-height: 200px;
+  padding: 0.4em 1em 0.6em;
+  border-top: 1px dashed rgba(0,0,0,0.15);
 }
 
 .simplified-debt-item {
-  padding: 0.4em 0.6em;
-  margin-bottom: 0.3em;
-  background-color: rgba(0, 0, 0, 0.75);
-  border-radius: 6px;
+  padding: 0.5em 1em;
+  margin-bottom: 0.4em;
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 12px;
+  font-size: 0.85em;
+  color: #333;
+}
+
+/* ── Balance modal ── */
+.balance-modal-content {
+  background: white;
+  max-width: 500px;
+  width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: left;
+  padding: 1.5em;
+}
+
+.balance-section-title {
+  font-size: 1em;
+  font-weight: 700;
+  color: #1565c0;
+  margin: 1em 0 0.4em;
+  padding-bottom: 0.3em;
+  border-bottom: 2px solid #e3f2fd;
+}
+
+.balance-section-title:first-child {
+  margin-top: 0;
+}
+
+.balance-help-link {
+  color: #007bff;
+  font-size: 0.75em;
+  text-decoration: none;
+}
+
+.balance-help-link:hover {
+  text-decoration: underline;
+}
+
+.balance-help-text {
+  max-width: 20em;
+  display: none;
+  text-align: justify;
+  font-size: 0.75em;
+  color: #666;
+  margin: 0.3em 0;
+  padding: 0.5em 0.8em;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.balance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0 1em;
+  font-size: 0.85em;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.balance-table thead th {
+  background: #e3f2fd;
+  color: #1565c0;
+  font-weight: 600;
+  padding: 0.5em 0.8em;
+  text-align: left;
+  border-bottom: 2px solid #90caf9;
+}
+
+.balance-table tbody td {
+  padding: 0.5em 0.8em;
+  border-bottom: 1px solid #eee;
+}
+
+.balance-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.balance-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.balance-positive {
+  font-weight: 900;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 8px;
+}
+
+.balance-negative {
+  font-weight: 900;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 8px;
+}
+
+.balance-debts-list {
+  text-align: left;
+  margin: 0.5em 0;
+}
+
+.balance-toggle-btn {
+  margin: 0.5em 0;
+  padding: 0.5em 1em;
+  border-radius: 20px;
+  border: 1.5px solid #007bff;
+  background: white;
+  color: #007bff;
+  font-weight: 600;
+  font-size: 0.8em;
+  cursor: pointer;
+  width: 100%;
+}
+
+.balance-toggle-btn:hover {
+  background: #e3f2fd;
+}
+
+.balance-settled-banner {
+  text-align: center;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  color: #2e7d32;
+  border-radius: 12px;
+  padding: 0.8em 1em;
+  font-weight: 700;
+  font-size: 1em;
+  margin: 0.5em 0;
+}
+
+.balance-settled-banner span {
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+.balance-close-btn {
+  width: 100%;
+  border-radius: 20px;
+  padding: 0.5em 1em;
+  margin-top: 0.5em;
+  background: #f5f5f5;
+  color: #555;
+  font-weight: 600;
+  border: 1px solid #ddd;
+}
+
+.balance-close-btn:hover {
+  background: #eee;
+}
+
+/* Participant chips */
+.participant-list {
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.participant-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 20px;
+  padding: 0.4em 1em;
+}
+
+.participant-chip-name {
+  font-weight: 600;
   font-size: 0.9em;
+}
+
+.participant-chip .remove-participant-btn {
+  background: transparent;
+  border: none;
+  opacity: 0.5;
+  cursor: pointer;
+  padding: 0.2em;
+  margin-left: 0;
+}
+
+.participant-chip .remove-participant-btn:hover {
+  opacity: 1;
+}
+
+/* Action buttons (add expense, transfer, participant) */
+.open-movement-modal-btn,
+.open-transfer-modal-btn,
+.open-participant-modal-btn {
+  border-radius: 16px;
+  padding: 0.4em 0.8em;
+  font-size: 0.8em;
+  border: 1px dashed #ccc;
+  background: white;
+  color: #555;
+  cursor: pointer;
+  margin-top: 0.5em;
+}
+
+.open-movement-modal-btn:hover,
+.open-transfer-modal-btn:hover,
+.open-participant-modal-btn:hover {
+  background: #f5f5f5;
+}
+
+/* Balance button */
+.open-aggregated-balances-modal-btn {
+  margin-top: 0.5em;
+  padding: 0.5em 1em;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(135deg, #007bff, #1565c0);
+  color: white;
+  font-weight: 600;
+  font-size: 0.85em;
+  cursor: pointer;
+  width: 100%;
+}
+
+.open-aggregated-balances-modal-btn:hover {
+  background: linear-gradient(135deg, #0069d9, #0d47a1);
 }
