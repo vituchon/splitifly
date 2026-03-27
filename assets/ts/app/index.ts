@@ -54,7 +54,12 @@ async function renderGroups(appState: app.State) {
         </div>
         <div class="group-section-content">
           <div class="movement-list" id="movements-list-${group.id}">
-            ${(group.movements || []).map(movement => `
+            ${(group.movements || []).length === 0 ? `
+              <div class="empty-state">
+                <span class="empty-state-icon">📋</span>
+                Todavía no hay movimientos.<br/>¡Agregá el primer gasto!
+              </div>
+            ` : (group.movements || []).map(movement => `
               <div class="movement-chip ${isTransferMovement(movement) ? 'transfer' : 'expense'}" data-movement-id="${movement.id}">
                 <div class="movement-chip-header">
                   <div class="movement-chip-left">
@@ -82,7 +87,12 @@ async function renderGroups(appState: app.State) {
         </div>
         <div class="group-section-content collapsed">
           <div class="participant-list" id="participant-list-${group.id}">
-            ${(group.participants || []).map(participant => `
+            ${(group.participants || []).length === 0 ? `
+              <div class="empty-state">
+                <span class="empty-state-icon">👥</span>
+                Sin participantes aún.<br/>Agregá al menos dos para empezar.
+              </div>
+            ` : (group.participants || []).map(participant => `
               <div class="participant-chip">
                 <span class="participant-chip-name">👤 ${participant.name}</span>
                 <button class="remove-participant-btn" data-participant-id="${participant.id}">❌</button>

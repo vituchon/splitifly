@@ -6,41 +6,14 @@
       <link rel="manifest" href="/assets/manifest.json">
       <title>Splitifly</title>
       <link rel="icon" type="image/x-icon" href="https://fonts.gstatic.com/s/e/notoemoji/15.1/1f4b8/512.png=s60">
+      <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
       <link href="/assets/css/main.css" rel="stylesheet" >
     </head>
     <body>
-      <style>
-        #about-button-container  {
-          position: fixed;
-          z-index: 1000;
-        }
-
-        #about-button {
-          background: linear-gradient(135deg, #3498db, #2980b9);
-          color: white;
-          font-size: 12px;
-          padding: 8px;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
-          box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        #about-button:hover {
-          transform: scale(1.05);
-          box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        #about-button-container {
-          top: 10px;
-          right: 10px;
-        }
-      </style>
       <div id="about-button-container">
-        <button id="about-button" style="color: transparent;  text-shadow: 0 0 0 white;">❔</button>
+        <button id="about-button">?</button>
       </div>
-      <dialog id="about-dialog" style="max-width: 75%;"></dialog>
+      <dialog id="about-dialog"></dialog>
       <script>
         document.addEventListener('DOMContentLoaded', () => {
           const aboutDialog = document.getElementById('about-dialog');
@@ -70,12 +43,13 @@
         });
       </script>
 
-      <div>
-        <h1 style="text-align: center;">Splitifly 💸🤝</h1>
+      <div class="app-header">
+        <div class="app-title">Splitifly <span>💸</span></div>
+        <div class="app-subtitle">Dividir gastos sin drama</div>
       </div>
       <div id="group-list"></div>
 
-      <button id="add-group-btn">➕👥💰</button>
+      <button id="add-group-btn">+</button>
 
       <div id="add-group-modal" class="modal">
         <div class="modal-content">
@@ -146,10 +120,12 @@
             <input id="transfer-movement-amount-input" style="width: auto;" type="number" placeholder="Ingresá monto...">
             <div style="margin-bottom: 1em;"></div>
 
-            <div class="horizontal-layout" style="margin-bottom: 1em;">
+            <div class="horizontal-layout" style="margin-bottom: 1em; align-items: center;">
               <select id="transfer-movement-from-participant-selector">
               </select>
+              &nbsp;
               <span font-size="2em">👉🏿</span>
+              &nbsp;
               <select id="transfer-movement-to-participant-selector">
               </select>
             </div>
