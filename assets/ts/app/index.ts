@@ -1,7 +1,7 @@
 import * as app from "./app";
 import * as api from "./../model/api/api";
 import { Group, Participant } from "../model/group";
-import { Movement } from "../model/movement";
+import { Movement, isTransferMovement } from "../model/movement";
 import { parsePrice, Price, stringifyPrice, zeroValue } from "../model/price";
 import { DebitCreditMap } from "../model/movement";
 
@@ -41,46 +41,66 @@ async function renderGroups(appState: app.State) {
     const groupDiv = document.createElement('div');
     groupDiv.className = 'group';
     groupDiv.innerHTML = `
-      <div class="vertical-layout">
-        <div class="horizontal-layout">
-          <b>${group.name}</b>
-          <div style="flex-grow:2; min-width: 1em;"></div>
-          <button class="remove-group-btn" data-group-id="${group.id}">❌</button><br/>
+      <div class="group-header">
+        <span class="group-title">${group.name}</span>
+        <div class="spacer"></div>
+        <button class="remove-group-btn" data-group-id="${group.id}">❌</button>
+      </div>
+      <button class="open-aggregated-balances-modal-btn">Calcular balances 🧮📊</button>
+
+      <div class="group-section">
+        <div class="group-section-header">
+          <span class="accordion-indicator">▼</span> 💰 Movimientos <small>(<strong>${group.movements.length || 0}</strong>)</small>
         </div>
-        <button class="open-aggregated-balances-modal-btn" style="margin-top: 0.5em;">Calcular balances<br/>🧮📊</button>
-      </div>
-      <div style="display: flex; flex-direction: column; align-self: flex-start;">
-        <div>💰 Movimientos <small>(<strong>${group.movements.length || 0}</strong>)</small></div>
-        <ol style="padding-inline-start: 1em;" id="movements-list-${group.id}">
-          ${(group.movements || []).map(movement => `
-            <li style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.5em;">
-              <div>
-                <!-- <span style="color: grey;">${formatUnixTimestamp(movement.createdAt)}</span><br/> -->
-                <!-- <span class="movement-summary">${movement.concept} <span>(${stringifyPrice(movement.amount)})</span></span> -->
-                <a href="#" onclick="document.getElementById('movement-detail-${movement.id}').style.display = 'inline';" class="movement-summary">${movement.concept} <span>(${stringifyPrice(movement.amount)})</span></a>
-                <span id="movement-detail-${movement.id}"style="display: none;">${movementDetailsByMovementId[movement.id]}</span>
+        <div class="group-section-content">
+          <div class="movement-list" id="movements-list-${group.id}">
+            ${(group.movements || []).length === 0 ? `
+              <div class="empty-state">
+                <span class="empty-state-icon">📋</span>
+                Todavía no hay movimientos.<br/>¡Agregá el primer gasto!
               </div>
-              <div style="flex-grow:2; min-width: 1em;"></div>
-              <!-- <span class="show-movement-detail-btn" onclick="document.getElementById('movement-detail-${movement.id}').style.display = 'inline'; this.style.display = 'none';">👀</span> -->
-              <button class="remove-movement-btn" data-movement-id="${movement.id}">❌</button>
-            </li>
-          `).join('')}
-        </ol>
-        <button class="open-movement-modal-btn">Agregar Gasto<br/>➕🧾</button>
-        &nbsp;
-        <button class="open-transfer-modal-btn">Agregar Transferencia<br/>➕➡️</button>
+            ` : (group.movements || []).map(movement => `
+              <div class="movement-chip ${isTransferMovement(movement) ? 'transfer' : 'expense'}" data-movement-id="${movement.id}">
+                <div class="movement-chip-header">
+                  <div class="movement-chip-left">
+                    <span>${isTransferMovement(movement) ? '➡️' : '🧾'}</span>
+                    <span class="movement-chip-concept">${movement.concept}</span>
+                  </div>
+                  <div class="movement-chip-right">
+                    <span class="movement-chip-amount">${stringifyPrice(movement.amount)}</span>
+                    <button class="remove-movement-btn" data-movement-id="${movement.id}">❌</button>
+                  </div>
+                </div>
+                <div class="movement-chip-detail" id="movement-detail-${movement.id}">${movementDetailsByMovementId[movement.id]}</div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="open-movement-modal-btn">Agregar Gasto ➕🧾</button>
+          &nbsp;
+          <button class="open-transfer-modal-btn">Agregar Transferencia ➕➡️</button>
+        </div>
       </div>
-      <div style="display: flex; flex-direction: column; align-self: flex-start;">
-        <div>👥 Participantes <small>(<strong>${group.participants.length || 0}</strong>)</small></div>
-        <ul style="padding-inline-start: 1em;" id="participant-list-${group.id}">
-          ${(group.participants || []).map(participant => `
-            <li style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.5em;">
-              <span>${participant.name}</span>
-              <button class="remove-participant-btn" data-participant-id="${participant.id}">❌</button>
-            </li>
-          `).join('')}
-        </ul>
-        <button class="open-participant-modal-btn">Agregar Participante<br/>➕👥</button>
+
+      <div class="group-section">
+        <div class="group-section-header">
+          <span class="accordion-indicator">▶</span> 👥 Participantes <small>(<strong>${group.participants.length || 0}</strong>)</small>
+        </div>
+        <div class="group-section-content collapsed">
+          <div class="participant-list" id="participant-list-${group.id}">
+            ${(group.participants || []).length === 0 ? `
+              <div class="empty-state">
+                <span class="empty-state-icon">👥</span>
+                Sin participantes aún.<br/>Agregá al menos dos para empezar.
+              </div>
+            ` : (group.participants || []).map(participant => `
+              <div class="participant-chip">
+                <span class="participant-chip-name">👤 ${participant.name}</span>
+                <button class="remove-participant-btn" data-participant-id="${participant.id}">❌</button>
+              </div>
+            `).join('')}
+          </div>
+          <button class="open-participant-modal-btn">Agregar Participante ➕👥</button>
+        </div>
       </div>
     `;
     groupDiv.dataset.groupId = group.id.toString()
@@ -218,8 +238,17 @@ document.getElementById("group-list").addEventListener("click", (event) => {
     }
   }
   if (target.matches(".remove-movement-btn")) {
-    const movementId = +target.dataset.movementId
-    deleteMovement(movementId)
+    const confirmDelete = window.confirm("¿Seguro que querés borrar el movimiento?")
+    if (confirmDelete) {
+      const movementId = +target.dataset.movementId
+      deleteMovement(movementId)
+      event.preventDefault();
+      event.stopPropagation()
+    }
+  }
+  const chip = target.closest(".movement-chip") as HTMLElement;
+  if (chip && !target.matches(".remove-movement-btn")) {
+    chip.classList.toggle("open");
     event.preventDefault();
     event.stopPropagation()
   }
@@ -228,6 +257,13 @@ document.getElementById("group-list").addEventListener("click", (event) => {
     deleteParticipant(participantId)
     event.preventDefault();
     event.stopPropagation()
+  }
+  const sectionHeader = target.closest(".group-section-header") as HTMLElement;
+  if (sectionHeader) {
+    const content = sectionHeader.nextElementSibling as HTMLElement;
+    const indicator = sectionHeader.querySelector(".accordion-indicator");
+    content.classList.toggle("collapsed");
+    indicator.textContent = content.classList.contains("collapsed") ? "▶" : "▼";
   }
 });
 
@@ -513,13 +549,8 @@ async function openAggregatedBalancesModal(groupId: number, appState: app.State)
   const sharesArray = Array.from(shares.entries())
   sharesBody.innerHTML = Array.from(sharesArray)
     .map(([participantId, amount]) => {
-      var styles = "font-weight: 900; "
-      if (amount.isLowerStrict(zeroValue())) {
-        styles += "background-color: rgba(255, 0, 0, 0.6); color: black;"
-      } else {
-        styles += "background-color: rgba(0, 150, 0, 0.6); color: white;"
-      }
-      return `<tr><td>${appState.participantById[participantId].name}</td><td style="${styles}">${stringifyPrice(amount)}</td></tr>`
+      const cssClass = amount.isLowerStrict(zeroValue()) ? 'balance-negative' : 'balance-positive';
+      return `<tr><td>${appState.participantById[participantId].name}</td><td class="${cssClass}">${stringifyPrice(amount)}</td></tr>`
     })
     .join('');
 

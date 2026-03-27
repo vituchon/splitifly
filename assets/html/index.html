@@ -6,41 +6,14 @@
       <link rel="manifest" href="/assets/manifest.json">
       <title>Splitifly</title>
       <link rel="icon" type="image/x-icon" href="https://fonts.gstatic.com/s/e/notoemoji/15.1/1f4b8/512.png=s60">
+      <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
       <link href="/assets/css/main.css" rel="stylesheet" >
     </head>
     <body>
-      <style>
-        #about-button-container  {
-          position: fixed;
-          z-index: 1000;
-        }
-
-        #about-button {
-          background: linear-gradient(135deg, #3498db, #2980b9);
-          color: white;
-          font-size: 12px;
-          padding: 8px;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
-          box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        #about-button:hover {
-          transform: scale(1.05);
-          box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        #about-button-container {
-          top: 10px;
-          right: 10px;
-        }
-      </style>
       <div id="about-button-container">
-        <button id="about-button" style="color: transparent;  text-shadow: 0 0 0 white;">❔</button>
+        <button id="about-button">?</button>
       </div>
-      <dialog id="about-dialog" style="max-width: 75%;"></dialog>
+      <dialog id="about-dialog"></dialog>
       <script>
         document.addEventListener('DOMContentLoaded', () => {
           const aboutDialog = document.getElementById('about-dialog');
@@ -70,12 +43,13 @@
         });
       </script>
 
-      <div>
-        <h1 style="text-align: center;">Splitifly 💸🤝</h1>
+      <div class="app-header">
+        <div class="app-title">Splitifly <span>💸</span></div>
+        <div class="app-subtitle">Dividir gastos sin drama</div>
       </div>
       <div id="group-list"></div>
 
-      <button id="add-group-btn">➕👥💰</button>
+      <button id="add-group-btn">+</button>
 
       <div id="add-group-modal" class="modal">
         <div class="modal-content">
@@ -146,10 +120,12 @@
             <input id="transfer-movement-amount-input" style="width: auto;" type="number" placeholder="Ingresá monto...">
             <div style="margin-bottom: 1em;"></div>
 
-            <div class="horizontal-layout" style="margin-bottom: 1em;">
+            <div class="horizontal-layout" style="margin-bottom: 1em; align-items: center;">
               <select id="transfer-movement-from-participant-selector">
               </select>
+              &nbsp;
               <span font-size="2em">👉🏿</span>
+              &nbsp;
               <select id="transfer-movement-to-participant-selector">
               </select>
             </div>
@@ -165,14 +141,14 @@
       </div>
 
       <div id="display-aggregated-balance-modal" class="modal">
-        <div class="modal-content cat-background">
+        <div class="modal-content balance-modal-content">
 
-          <h2 style="margin-bottom: 0;">Balances</h2>
-          <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('balances-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta tablita?</a>
-          <div id="balances-help" style="max-width: 20em; display: none; text-align: justify;">
-            <span style="font-size: 0.7em;">Se enumera cuanto tiene de saldo a favor (+) o en contra (-) cada participante.</span>
+          <h2 class="balance-section-title">📊 Balances</h2>
+          <a href="#" class="balance-help-link" onclick="document.getElementById('balances-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta tablita?</a>
+          <div id="balances-help" class="balance-help-text">
+            <span>Se enumera cuanto tiene de saldo a favor (+) o en contra (-) cada participante.</span>
           </div>
-          <table id="shares-table" border="1" style="margin-bottom: 2em;">
+          <table id="shares-table" class="balance-table">
             <thead>
               <tr>
                 <th>Participante</th>
@@ -183,19 +159,19 @@
           </table>
 
           <div id="simplified-debts">
-            <h2 style="margin-bottom: 0;">Pagos a realizar</h2>
-            <div id="simplified-debts-list" style="text-align: left; margin: 0.5em 0;"></div>
+            <h2 class="balance-section-title">💸 Pagos a realizar</h2>
+            <div id="simplified-debts-list" class="balance-debts-list"></div>
           </div>
 
-          <button id="toggle-debts-view-btn" class="color-button" style="background-color: black; font-weight: bold; margin: 0.5em 0;">Ver detalle</button>
+          <button id="toggle-debts-view-btn" class="balance-toggle-btn">Ver detalle</button>
 
           <div id="detailed-debts" style="display: none;">
-            <h2 style="margin-bottom: 0;">Matriz de deudas</h2>
-            <a href="#" style="color: white; font-size: 0.7em;" onclick="document.getElementById('debts-matrix-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta matriz?</a>
-            <div id="debts-matrix-help" style="max-width: 20em; display: none; text-align: justify;">
-              <span style="font-size: 0.7em;">El participante de cada fila <b>debe</b> al participante de la columna el valor correspondiente a la celda.</span>
+            <h2 class="balance-section-title">🔢 Matriz de deudas</h2>
+            <a href="#" class="balance-help-link" onclick="document.getElementById('debts-matrix-help').style.display = 'block';this.style.display = 'none';">¿Qué es esta matriz?</a>
+            <div id="debts-matrix-help" class="balance-help-text">
+              <span>El participante de cada fila <b>debe</b> al participante de la columna el valor correspondiente a la celda.</span>
             </div>
-            <table id="balance-table" border="1">
+            <table id="balance-table" class="balance-table">
               <thead>
                 <tr id="balance-header-row">
                   <th>Participante</th>
@@ -205,8 +181,8 @@
             </table>
           </div>
 
-          <h3 id="balanced-title" style="color: yellow; background-color: black;">¡El grupo está balanceado!<br/><span style="font-size: 0.8em;">Las cuentas están saldadas ⚖️🙆🏿</span></h3>
-          <button class="color-button close" style="background-color: black; font-weight: bold; margin-top: 0.5em;">Cerrar</button>
+          <div id="balanced-title" class="balance-settled-banner">⚖️ ¡El grupo está balanceado!<br/><span>Las cuentas están saldadas 🙆🏿</span></div>
+          <button class="color-button close balance-close-btn">Cerrar</button>
         </div>
       </div>
     <script>
