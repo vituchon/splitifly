@@ -4,7 +4,7 @@
 
 Tired of doing those manual calculations to split money with your friends?
 
-Same here — so grab this app and let the computer do the work for you!
+Same here, so grab this app and let the computer do the work for you!
 
 ## Instalation
 
