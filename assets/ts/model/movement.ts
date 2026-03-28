@@ -94,7 +94,10 @@ export function ensureSharesSumToZero(participantShareByParticipantId: Participa
   }
 }
 
-export function deepCopyParticipantShareByParticipantId(original: Map<number, Price>): Map<number, Price> {
+// Shallow copy: creates a new Map and copies entries.
+// Keys and values are copied by reference. This is safe here because both are numbers (primitives), so no shared mutable state exists.
+// If values were objects, a deep copy would be needed.
+export function shallowCopyParticipantShareByParticipantId(original: Map<number, Price>): Map<number, Price> {
   return new Map(original);
 }
 
@@ -108,7 +111,7 @@ export function deepCopyDebitCreditMap(original: DebitCreditMap): DebitCreditMap
 
 export function buildDebitCreditMap(participantMovements: ParticipantMovement[], shares: ParticipantShareByParticipantId): DebitCreditMap {
   const debitCreditMap = new Map<number, Map<number, Price>>();
-  const sharesCopy = deepCopyParticipantShareByParticipantId(shares);
+  const sharesCopy = shallowCopyParticipantShareByParticipantId(shares);
   const participantIds = Array.from(sharesCopy.keys()).sort((a, b) => a - b);
 
   for (const participantMovement of participantMovements) {
