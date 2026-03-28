@@ -222,6 +222,34 @@ describe('Comparaciones y Negación', () => {
     });
   });
 
+  describe('Valor absoluto', () => {
+    const cases = [
+        {
+            input: Fraction.fromFraction(-3, 4),
+            expected: Fraction.fromFraction(3, 4)
+        },
+        {
+            input: Fraction.fromFraction(3, 4),
+            expected: Fraction.fromFraction(3, 4)
+        },
+        {
+            input: Fraction.fromFraction(0, 1),
+            expected: Fraction.fromFraction(0, 1)
+        },
+        {
+            input: Fraction.fromFraction(-7, 3),
+            expected: Fraction.fromFraction(7, 3)
+        },
+    ];
+
+    cases.forEach(({ input, expected }, index) => {
+        it(`debería calcular el valor absoluto correctamente el caso ${index + 1}`, () => {
+            const result = input.abs();
+            expect(result.equals(expected)).toBe(true);
+        });
+    });
+  });
+
   describe('Comparaciones con compareTo', () => {
     const cases = [
         {

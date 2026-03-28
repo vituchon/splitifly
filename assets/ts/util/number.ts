@@ -1,9 +1,12 @@
+import { zeroValue } from "../model/price";
+
 export interface _Number {
   add(other: _Number): _Number;
   subtract(other: _Number): _Number;
   multiply(other: _Number): _Number;
   divide(other: _Number): _Number;
   negate(): _Number;
+  abs(): _Number;
   toNumber(): number;
   toString(): string;
   compareTo(other: _Number): number;
@@ -69,6 +72,14 @@ export class NativeNumber implements _Number {
       throw new Error("Cannot divide by zero");
     }
     return new NativeNumber(this.value / other.value);
+  }
+
+  abs(): NativeNumber {
+    if (this.isLowerStrict(zeroValue())) {
+      return new NativeNumber(-this.value);
+    } else {
+      return new NativeNumber(this.value);
+    }
   }
 
   negate(): NativeNumber {

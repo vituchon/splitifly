@@ -75,6 +75,14 @@ export class Fraction implements _Number {
     return new Fraction(-this.numerator, this.denominator);
   }
 
+  abs(): Fraction {
+    if (this.numerator > 0 && this.denominator) {
+      return new Fraction(this.numerator, this.denominator);
+    } else {
+      return new Fraction(Math.abs(this.numerator), Math.abs(this.denominator));
+    }
+  }
+
   compareTo(_other: _Number): number{
       // La comparación la restringo a objetos del mismo tipo
       const other = _other as unknown as Fraction
