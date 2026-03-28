@@ -42,18 +42,64 @@
                 }
               });
 
-              // Copy to clipboard button
+              // Copy to clipboard button (with fallback for Android/HTTP)
               aboutDialog.querySelector('#copy-data-btn').addEventListener('click', async () => {
                 const btn = aboutDialog.querySelector('#copy-data-btn');
-                const text = aboutDialog.querySelector('#export-textarea').value;
-                try {
-                  await navigator.clipboard.writeText(text);
+                const textarea = aboutDialog.querySelector('#export-textarea');
+                const text = textarea.value;
+                let copied = false;
+                // Try modern clipboard API first
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  try {
+                    await navigator.clipboard.writeText(text);
+                    copied = true;
+                  } catch (err) {
+                    // fallback below
+                  }
+                }
+                // Fallback: select + execCommand
+                if (!copied) {
+                  try {
+                    textarea.select();
+                    textarea.setSelectionRange(0, textarea.value.length);
+                    copied = document.execCommand('copy');
+                  } catch (err) {
+                    // ignore
+                  }
+                }
+                if (copied) {
                   const original = btn.textContent;
                   btn.textContent = '¡Copiado!';
                   setTimeout(() => { btn.textContent = original; }, 2000);
-                } catch (err) {
-                  alert('No se pudo copiar al portapapeles.');
+                } else {
+                  alert('No se pudo copiar automáticamente. Seleccioná el texto manualmente y copialo.');
+                  textarea.select();
+                  textarea.setSelectionRange(0, textarea.value.length);
                 }
+              });
+
+              // Download as file button
+              aboutDialog.querySelector('#download-data-btn').addEventListener('click', () => {
+                const text = aboutDialog.querySelector('#export-textarea').value;
+                if (!text) return;
+                const blob = new Blob([text], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'splitifly-backup.json';
+                a.click();
+                URL.revokeObjectURL(url);
+              });
+
+              // Load from file input
+              aboutDialog.querySelector('#load-file-btn').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  aboutDialog.querySelector('#import-textarea').value = ev.target.result;
+                };
+                reader.readAsText(file);
               });
 
               // Import data button
@@ -62,6 +108,22 @@
                 const exportPanel = aboutDialog.querySelector('#export-panel');
                 exportPanel.style.display = 'none';
                 importPanel.style.display = importPanel.style.display === 'block' ? 'none' : 'block';
+              });
+
+              // Paste from clipboard button
+              aboutDialog.querySelector('#paste-data-btn').addEventListener('click', async () => {
+                const btn = aboutDialog.querySelector('#paste-data-btn');
+                const textarea = aboutDialog.querySelector('#import-textarea');
+                try {
+                  const text = await navigator.clipboard.readText();
+                  textarea.value = text;
+                  const original = btn.textContent;
+                  btn.textContent = '¡Pegado!';
+                  setTimeout(() => { btn.textContent = original; }, 2000);
+                } catch (err) {
+                  alert('No se pudo acceder al portapapeles. Mantené presionado sobre el campo de texto y seleccioná "Pegar".');
+                  textarea.focus();
+                }
               });
 
               // Confirm import button

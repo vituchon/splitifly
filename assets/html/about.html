@@ -293,11 +293,14 @@
         <textarea id="export-textarea" class="data-textarea" readonly></textarea>
         <div class="data-btn-row" style="margin-top: 0.3em;">
           <button id="copy-data-btn" class="data-btn data-btn-copy">Copiar al portapapeles</button>
+          <button id="download-data-btn" class="data-btn data-btn-copy">Descargar archivo</button>
         </div>
       </div>
       <div id="import-panel" class="data-panel">
         <textarea id="import-textarea" class="data-textarea" placeholder="Pegá aquí el JSON exportado..."></textarea>
         <div class="data-btn-row" style="margin-top: 0.3em;">
+          <button id="paste-data-btn" class="data-btn data-btn-copy">Pegar desde portapapeles</button>
+          <label class="data-btn data-btn-copy" style="cursor: pointer;">Cargar archivo<input id="load-file-btn" type="file" accept=".json" style="display: none;"></label>
           <button id="confirm-import-btn" class="data-btn data-btn-confirm-import">⚠️ Confirmar importación</button>
         </div>
       </div>
