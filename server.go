@@ -65,6 +65,13 @@ func buildRouter() *mux.Router {
 
 	// Ruta raíz para el index.html
 	router.HandleFunc("/", serveRoot).Methods("GET")
+	// El service worker pre-cachea "/assets/html/index.html" (la ruta real del archivo),
+	// pero la app sirve el index desde "/" via serveRoot. Sin esta ruta, cuando el SW
+	// pide /assets/html/index.html al server para cachearla, el file server la devuelve
+	// como archivo estático sin el tratamiento de serveRoot. Mapeando ambas rutas al
+	// mismo handler garantizamos que el contenido cacheado por el SW sea idéntico al
+	// que se sirve en "/".
+	router.HandleFunc("/assets/html/index.html", serveRoot).Methods("GET")
 
 	return router
 }
