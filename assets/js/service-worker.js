@@ -19,9 +19,15 @@ const cacheFirst = async ({ request, preloadResponsePromise }) => {
   // Next try to use the preloaded response, if it's there
   const preloadResponse = await preloadResponsePromise;
   if (preloadResponse) {
-    console.info('using preload response', preloadResponse);
-    putInCache(request, preloadResponse.clone());
-    return preloadResponse;
+    if (preloadResponse.type === 'opaqueredirect' || preloadResponse.redirected) {
+      // No se puede usar una respuesta redirigida con respondWith() para navigation requests.
+      // Caemos al fetch normal que sigue redirects automáticamente.
+      console.info('preload response is a redirect, falling through to fetch');
+    } else {
+      console.info('using preload response', preloadResponse);
+      putInCache(request, preloadResponse.clone());
+      return preloadResponse;
+    }
   }
 
   // Next try to get the resource from the network
@@ -57,6 +63,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('install', (event) => {
   event.waitUntil(
     addResourcesToCache([
+      "/",
       "/assets/html/index.html",
       "/assets/html/about.html",
       "/assets/css/main.css",
@@ -75,7 +82,8 @@ self.addEventListener('install', (event) => {
       "/assets/js/util/fraction.js",
       "/assets/js/util/number.js",
       "/assets/images/catty.jpg",
-      "/assets/images/worker.jpeg"
+      "/assets/images/worker.jpeg",
+      "/assets/manifest.json"
     ])
   );
 });
