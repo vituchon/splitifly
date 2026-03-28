@@ -94,9 +94,10 @@ export function ensureSharesSumToZero(participantShareByParticipantId: Participa
   }
 }
 
-// Shallow copy: creates a new Map and copies entries.
-// Keys and values are copied by reference. This is safe here because both are numbers (primitives), so no shared mutable state exists.
-// If values were objects, a deep copy would be needed.
+// Shallow copy: creates a new Map and copies entries by reference.
+// ⚠️ Keys are numbers (primitives), but values are Price objects (_Number interface).
+// This works safely ONLY because Price instances are treated as immutable (methods like add/subtract return new instances instead of mutating).
+// TODO: if Price ever becomes mutable, this must be changed to a deep copy!
 export function shallowCopyParticipantShareByParticipantId(original: Map<number, Price>): Map<number, Price> {
   return new Map(original);
 }
