@@ -160,6 +160,87 @@
   .about-github:hover {
     text-decoration: underline;
   }
+
+  .data-section {
+    width: 100%;
+    max-width: 600px;
+    margin: 0.5em auto;
+  }
+
+  .data-section h3 {
+    text-align: center;
+    color: #1565c0;
+    margin-bottom: 0.3em;
+  }
+
+  .data-btn-row {
+    display: flex;
+    gap: 0.5em;
+    justify-content: center;
+    margin-bottom: 0.5em;
+  }
+
+  .data-btn {
+    border-radius: 20px;
+    padding: 0.4em 1.2em;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    font-size: 0.85em;
+  }
+
+  .data-btn-export {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  .data-btn-export:hover {
+    background: #bbdefb;
+  }
+
+  .data-btn-import {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  .data-btn-import:hover {
+    background: #ffe0b2;
+  }
+
+  .data-btn-copy {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .data-btn-copy:hover {
+    background: #c8e6c9;
+  }
+
+  .data-btn-confirm-import {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  .data-btn-confirm-import:hover {
+    background: #ffcdd2;
+  }
+
+  .data-textarea {
+    width: 100%;
+    min-height: 120px;
+    font-family: monospace;
+    font-size: 0.75em;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0.5em;
+    box-sizing: border-box;
+    resize: vertical;
+  }
+
+  .data-panel {
+    display: none;
+    margin-top: 0.3em;
+  }
   </style>
 </head>
 <body id="about">
@@ -202,6 +283,26 @@
         👁️⚠️🤏🏿 Little disclaimership: Esta app usa el <a href="https://developer.mozilla.org/es/docs/Web/API/Window/localStorage">local storage</a> del navegador como subsistema de persistencia subyacente. Las bonbades del mismo no permiten que se registren ad infinitum datos, así que ojota. Mas o menos se guardan hasta 5MB, lo que debería alcanzar para dos o tres grupos. <b>Si borras los datos del navegador (historial, cookies,  datos cacheados, etc.) lo más probable es que se pierdan los datos que guarda esta app.</b>
       </p>
     </section>
+    <section class="data-section">
+      <h3>📦 Datos</h3>
+      <div class="data-btn-row">
+        <button id="export-data-btn" class="data-btn data-btn-export">Exportar datos</button>
+        <button id="import-data-btn" class="data-btn data-btn-import">Importar datos</button>
+      </div>
+      <div id="export-panel" class="data-panel">
+        <textarea id="export-textarea" class="data-textarea" readonly></textarea>
+        <div class="data-btn-row" style="margin-top: 0.3em;">
+          <button id="copy-data-btn" class="data-btn data-btn-copy">Copiar al portapapeles</button>
+        </div>
+      </div>
+      <div id="import-panel" class="data-panel">
+        <textarea id="import-textarea" class="data-textarea" placeholder="Pegá aquí el JSON exportado..."></textarea>
+        <div class="data-btn-row" style="margin-top: 0.3em;">
+          <button id="confirm-import-btn" class="data-btn data-btn-confirm-import">⚠️ Confirmar importación</button>
+        </div>
+      </div>
+    </section>
+
     <h2><a target="_blank" href="https://github.com/vituchon/splitifly" class="about-github">Código@github  <img style="vertical-align: middle;" src="/assets/images/worker.jpeg"></a></h2>
     <button class="about-close-btn" onclick="document.getElementById('about-dialog').close()">Cerrar</button>
   </div>
