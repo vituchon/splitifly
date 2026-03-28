@@ -12,6 +12,13 @@ interface UIGroup extends Group {
 
 async function renderGroups(appState: app.State) {
   const groupList = document.getElementById('group-list');
+  // save collapsed state of each section per group before re-rendering
+  const sectionStates: { [groupId: string]: boolean[] } = {};
+  groupList.querySelectorAll('.group').forEach((groupEl: HTMLElement) => {
+    const groupId = groupEl.dataset.groupId;
+    const sections = groupEl.querySelectorAll('.group-section-content');
+    sectionStates[groupId] = Array.from(sections).map(s => s.classList.contains('collapsed'));
+  });
   groupList.innerHTML = '';
   const groups: UIGroup[] = Object.values(appState.groupById).map(group => {
     return {
@@ -105,6 +112,20 @@ async function renderGroups(appState: app.State) {
     `;
     groupDiv.dataset.groupId = group.id.toString()
     groupList.appendChild(groupDiv);
+    // restore collapsed state from before re-render
+    const savedStates = sectionStates[group.id.toString()];
+    if (savedStates) {
+      const sections = groupDiv.querySelectorAll('.group-section-content');
+      sections.forEach((section, i) => {
+        if (savedStates[i] !== undefined) {
+          section.classList.toggle('collapsed', savedStates[i]);
+          const indicator = section.previousElementSibling?.querySelector('.accordion-indicator');
+          if (indicator) {
+            indicator.textContent = savedStates[i] ? '▶' : '▼';
+          }
+        }
+      });
+    }
   });
 }
 
