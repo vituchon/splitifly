@@ -165,6 +165,10 @@ document.getElementById('add-participant-movement-confirm-btn').onclick = () => 
   addParticipantExpenseMovement();
 }
 
+document.getElementById('fill-remaining-zero-btn').onclick = () => {
+  fillRemainingParticipantsWithZero();
+}
+
 (document.querySelector('#display-aggregated-balance-modal button.close') as HTMLButtonElement).onclick = () => {
   toggleModal('display-aggregated-balance-modal')
 }
@@ -437,20 +441,23 @@ function addParticipantToSelect(select: HTMLSelectElement, participant: Particip
   select.appendChild(option);
 }
 
-function addParticipantExpenseMovement() {
+function _addParticipantExpenseMovement(participantId: number, participantShare: Price) {
   const modal = document.getElementById('add-expense-movement-modal') as HTMLMovementModal;
   const select = document.getElementById('participant-movement-selector') as HTMLSelectElement;
-  const priceInput = document.getElementById('participant-expense-movement-total-amount-input') as HTMLInputElement
   const list = document.getElementById('participant-expense-movement-list');
+  const totalPriceInput = document.getElementById('expense-movement-total-amount-input') as HTMLInputElement;
 
-  const participantId = +select.value;
-  if (!participantId || !priceInput.value) {
-    alert('Por favor, seleccioná un participante y especificá una contribución 😤');
-    return;
+  // find the option index for this participant
+  let optionIndex = -1;
+  for (let i = 0; i < select.options.length; i++) {
+    if (+select.options[i].value === participantId) {
+      optionIndex = i;
+      break;
+    }
   }
-  const participantShare = parsePrice(priceInput.value.trim().replace(/\./g, ","));
-  // add to list
-  const participantName = select.options[select.selectedIndex].text;
+  if (optionIndex === -1) return;
+
+  const participantName = select.options[optionIndex].text;
   modal.__selectedParticipants[participantId] = { id: participantId, name: participantName, price: participantShare, groupId: undefined };
   const listItem = document.createElement('div');
   listItem.className = 'horizontal-layout';
@@ -458,8 +465,7 @@ function addParticipantExpenseMovement() {
   listItem.dataset.participantId = participantId.toString()
   listItem.dataset.price = stringifyPrice(participantShare)
   listItem.innerHTML = `
-    <span>${participantName} (id: ${participantId}): ${stringifyPrice(participantShare)}</span>
-    <button class="remove-btn">❌</button>
+    <span>${participantName} (id: ${participantId}): ${stringifyPrice(participantShare)}</span>&nbsp;<button class="remove-btn">❌</button>
   `;
   listItem.querySelector('.remove-btn').addEventListener('click', () => {
     delete modal.__selectedParticipants[participantId];
@@ -468,11 +474,35 @@ function addParticipantExpenseMovement() {
     totalPriceInput.value = stringifyPrice(parsePrice(totalPriceInput.value).subtract(participantShare))
   });
   list.appendChild(listItem);
-
-  priceInput.value = '';
-  select.remove(select.selectedIndex);
-  const totalPriceInput = document.getElementById('expense-movement-total-amount-input')as HTMLInputElement
+  select.remove(optionIndex);
   totalPriceInput.value = stringifyPrice(parsePrice(totalPriceInput.value || "0").add(participantShare))
+}
+
+function addParticipantExpenseMovement() {
+  const select = document.getElementById('participant-movement-selector') as HTMLSelectElement;
+  const priceInput = document.getElementById('participant-expense-movement-total-amount-input') as HTMLInputElement
+
+  const participantId = +select.value;
+  if (!participantId || !priceInput.value) {
+    alert('Por favor, seleccioná un participante y especificá una contribución 😤');
+    return;
+  }
+  const participantShare = parsePrice(priceInput.value.trim().replace(/\./g, ","));
+  _addParticipantExpenseMovement(participantId, participantShare);
+  priceInput.value = '';
+}
+
+function fillRemainingParticipantsWithZero() {
+  const select = document.getElementById('participant-movement-selector') as HTMLSelectElement;
+  const totalPriceInput = document.getElementById('expense-movement-total-amount-input') as HTMLInputElement;
+  if (!totalPriceInput.value) {
+    totalPriceInput.value = stringifyPrice(zeroValue());
+  }
+  const zeroPrice = zeroValue();
+  while (select.options.length > 1) {
+    const participantId = +select.options[1].value;
+    _addParticipantExpenseMovement(participantId, zeroPrice);
+  }
 }
 
 function closeExpenseMovementModal() {
