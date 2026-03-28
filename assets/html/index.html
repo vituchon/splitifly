@@ -29,6 +29,68 @@
 
               const content = await response.text();
               aboutDialog.innerHTML = content;
+
+              // Export data button
+              aboutDialog.querySelector('#export-data-btn').addEventListener('click', () => {
+                const exportPanel = aboutDialog.querySelector('#export-panel');
+                const importPanel = aboutDialog.querySelector('#import-panel');
+                importPanel.style.display = 'none';
+                exportPanel.style.display = exportPanel.style.display === 'block' ? 'none' : 'block';
+                if (exportPanel.style.display === 'block') {
+                  const data = localStorage.getItem('splitifly-local-storage') || '';
+                  aboutDialog.querySelector('#export-textarea').value = data;
+                }
+              });
+
+              // Copy to clipboard button
+              aboutDialog.querySelector('#copy-data-btn').addEventListener('click', async () => {
+                const btn = aboutDialog.querySelector('#copy-data-btn');
+                const text = aboutDialog.querySelector('#export-textarea').value;
+                try {
+                  await navigator.clipboard.writeText(text);
+                  const original = btn.textContent;
+                  btn.textContent = '¡Copiado!';
+                  setTimeout(() => { btn.textContent = original; }, 2000);
+                } catch (err) {
+                  alert('No se pudo copiar al portapapeles.');
+                }
+              });
+
+              // Import data button
+              aboutDialog.querySelector('#import-data-btn').addEventListener('click', () => {
+                const importPanel = aboutDialog.querySelector('#import-panel');
+                const exportPanel = aboutDialog.querySelector('#export-panel');
+                exportPanel.style.display = 'none';
+                importPanel.style.display = importPanel.style.display === 'block' ? 'none' : 'block';
+              });
+
+              // Confirm import button
+              aboutDialog.querySelector('#confirm-import-btn').addEventListener('click', () => {
+                const text = aboutDialog.querySelector('#import-textarea').value.trim();
+                if (!text) {
+                  alert('El campo está vacío. Pegá el JSON exportado.');
+                  return;
+                }
+                let parsed;
+                try {
+                  parsed = JSON.parse(text);
+                } catch (e) {
+                  alert('El texto no es un JSON válido.');
+                  return;
+                }
+                const requiredKeys = ['groupById', 'participantById', 'movementById', 'participantMovementById'];
+                const missing = requiredKeys.filter(k => !(k in parsed));
+                if (missing.length > 0) {
+                  alert('El JSON no tiene la estructura esperada. Faltan: ' + missing.join(', '));
+                  return;
+                }
+                if (!window.confirm('⚠️ Esto reemplazará TODOS los datos actuales. ¿Estás seguro?')) {
+                  return;
+                }
+                localStorage.setItem('splitifly-local-storage', text);
+                window.location.reload();
+              });
+
               aboutDialog.showModal();
               aboutDialog.scrollTop = 0;
             } catch (error) {
