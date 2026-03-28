@@ -19,6 +19,7 @@ async function renderGroups(appState: app.State) {
     const sections = groupEl.querySelectorAll('.group-section-content');
     sectionStates[groupId] = Array.from(sections).map(s => s.classList.contains('collapsed'));
   });
+  // end collapsed state
   groupList.innerHTML = '';
   const groups: UIGroup[] = Object.values(appState.groupById).map(group => {
     return {
@@ -126,6 +127,7 @@ async function renderGroups(appState: app.State) {
         }
       });
     }
+    // end restore collapsed state
   });
 }
 

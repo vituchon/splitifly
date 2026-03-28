@@ -1,5 +1,5 @@
 import { Group, Participant as ModelParticipant} from '../group';
-import { Movement as ModelMovement, TransferMovement as ModelTransferMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsExpenseShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare, MovementType, buildParticipantTransferMovements, cancelMutualDebts, eliminateIntermediaries } from '../movement';
+import { Movement as ModelMovement, TransferMovement as ModelTransferMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsExpenseShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare, MovementType, buildParticipantTransferMovements, simplifyBalance} from '../movement';
 import { Price } from '../price';
 import { EntitiesRepository, Collection } from '../../repositories/common';
 import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage';
@@ -203,9 +203,8 @@ export async function calculateAggregatedBalances(groupId: number): Promise<[Deb
     }
 
     const participantIds =  (await participantsRepository.getByGroupId(groupId)).map(p => p.id);
-    const simplifiedBalance = cancelMutualDebts(accumulatedBalance, participantIds);
-    const moreSimplifiedBalance = eliminateIntermediaries(simplifiedBalance, participantIds);
-    return [moreSimplifiedBalance, accumulatedBalance, accumulatedShare];
+    const simplifiedBalance = simplifyBalance(accumulatedBalance, participantIds);
+    return [simplifiedBalance, accumulatedBalance, accumulatedShare];
 }
 
 export async function calculateBalance(groupId: number, movementId: number): Promise<[DebitCreditMap, ParticipantShareByParticipantId]> {

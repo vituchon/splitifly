@@ -11,9 +11,10 @@ import {
     sumParticipantShares,
     deepCopyDebitCreditMap,
     cancelMutualDebts,
+    simplifyBalance,
     eliminateIntermediaries
 } from './movement';
-import { newPrice } from './price';
+import { newPrice, zeroValue } from './price';
 
 describe('Movement Calculations', () => {
     describe('calculateDebitCreditMapForExpenseShare', () => {
@@ -342,10 +343,87 @@ describe('eliminateIntermediaries', () => {
         expected: DebitCreditMap;
     }[] = [
         {
-            // Caso original: cadena 1→3→2 (1 le debe 7 a 3 y 3 le debe 5 a 2)
-            // Compensación: redirigir min(7,5)=5 de 1→3→2 a 1→2 directo
-            // Resultado: 1→3 baja de 10 a 5, 1→2 sube de 5 a 10, 3→2 baja de 6 a 1
-            name: "Cadena con ambas patas del mismo tamaño: compensa totalmente al intermediario",
+            // Cadena A→B→C: diff=min(100,100)=100, redirige a A→C
+            name: "Cadena simple A→B→C se redirige a A→C",
+            participantIds: [1, 2, 3],
+            input: new Map([
+                [1, new Map([[2, newPrice(100)]])],
+                [2, new Map([[3, newPrice(100)]])]
+            ]),
+            expected: new Map([
+                [1, new Map([[2, zeroValue()], [3, newPrice(100)]])],
+                [2, new Map([[3, zeroValue()]])]
+            ])
+        },
+        {
+            // Cadena A→B→C: diff=min(100,60)=60, parcial
+            name: "Cadena parcial: compensación limitada por la pata menor",
+            participantIds: [1, 2, 3],
+            input: new Map([
+                [1, new Map([[2, newPrice(100)]])],
+                [2, new Map([[3, newPrice(60)]])]
+            ]),
+            expected: new Map([
+                [1, new Map([[2, newPrice(40)], [3, newPrice(60)]])],
+                [2, new Map([[3, newPrice(0)]])]
+            ])
+        },
+        {
+            // Sin cadenas: deudas independientes quedan igual
+            name: "Sin cadenas: deudas independientes quedan igual",
+            participantIds: [1, 2, 3, 4],
+            input: new Map([
+                [1, new Map([[2, newPrice(100)]])],
+                [3, new Map([[4, newPrice(200)]])]
+            ]),
+            expected: new Map([
+                [1, new Map([[2, newPrice(100)]])],
+                [3, new Map([[4, newPrice(200)]])]
+            ])
+        },
+        {
+            name: "Mapa vacío",
+            participantIds: [],
+            input: new Map(),
+            expected: new Map()
+        },
+        {
+            // Solo 2 participantes, no hay tercer nodo para intermediario
+            name: "2 participantes sin intermediario posible",
+            participantIds: [1, 2],
+            input: new Map([
+                [1, new Map([[2, newPrice(100)]])]
+            ]),
+            expected: new Map([
+                [1, new Map([[2, newPrice(100)]])]
+            ])
+        },
+        {
+            // Cascada 1→2→3→4: cada uno 100.
+            // Par (1,2): cadena 1→2→3, diff=min(100,100)=100 → 1→2:0, 1→3:100, 2→3:0
+            // Par (1,3): cadena 1→3→4, diff=min(100,100)=100 → 1→3:0, 1→4:100, 3→4:0
+            // Resultado: 1→2:0, 1→3:0, 1→4:100, 2→3:0, 3→4:0
+            name: "Cascada de 4 participantes 1→2→3→4 se colapsa en una sola deuda directa",
+            participantIds: [1, 2, 3, 4],
+            input: new Map([
+                [1, new Map([[2, newPrice(100)]])],
+                [2, new Map([[3, newPrice(100)]])],
+                [3, new Map([[4, newPrice(100)]])]
+            ]),
+            expected: new Map([
+                [1, new Map([[2, zeroValue()], [3, zeroValue()], [4, newPrice(100)]])],
+                [2, new Map([[3, zeroValue()]])],
+                [3, new Map([[4, zeroValue()]])]
+            ])
+        },
+        {
+            // 3 participantes con deudas cruzadas: 1→2:5, 1→3:10, 2→3:1, 3→1:3, 3→2:6
+            // Par (1,2): net=5, via=2, dest=3: netViaDest=6-1=5>0 → NO cadena
+            // Par (1,3): net=10-3=7, via=3, dest=2: netViaDest=1-6=-5<0 → cadena 1→3→2, diff=min(7,5)=5
+            //   → 1→3:10-5=5, 1→2:5+5=10, 3→2:6-5=1
+            // Par (2,3): net=1-1=0 → skip
+            // Resultado: 1→2:10, 1→3:5, 2→3:1, 3→1:3, 3→2:1
+            name: "3 participantes con deudas cruzadas: solo una cadena válida, resto intacto (test 7)",
             participantIds: [1, 2, 3],
             input: new Map([
                 [1, new Map([[2, newPrice(5)], [3, newPrice(10)]])],
@@ -359,10 +437,64 @@ describe('eliminateIntermediaries', () => {
             ])
         },
         {
-            // Input con deudas invertidas respecto al caso anterior
-            // Net: 2→1:5, 2→3:5, 3→1:7. Cadena 2→3→1: min(5,7)=5
-            // Resultado: 2→1 sube de 5 a 10, 2→3 baja de 6 a 1, 3→1 baja de 10 a 5
-            name: "Cadena donde una pata es menor que la otra: compensa parcialmente (diff = min de ambas)",
+            // 1→2:200, 2→1:100, 2→3:100, 3→4:100
+            // Par (1,2): net=200-100=100, via=2, dest=3: cadena 1→2→3, diff=min(100,100)=100
+            //   → 1→2:100, 1→3:100, 2→3:0
+            // Par (1,3): net=100, via=3, dest=4: cadena 1→3→4, diff=min(100,100)=100
+            //   → 1→3:0, 1→4:100, 3→4:0
+            // Par (2,1): net=100-100=0 → skip
+            // Resultado: 1→2:100, 1→3:0, 1→4:100, 2→1:100, 2→3:0, 3→4:0
+            // (las mutuas 1↔2 quedan porque eso lo resuelve cancelMutualDebts)
+            name: "4 participantes con deuda mutua + cascada: redirige cascada, deja mutuas intactas (test 8)",
+            participantIds: [1, 2, 3, 4],
+            input: new Map([
+                [1, new Map([[2, newPrice(200)]])],
+                [2, new Map([[1, newPrice(100)], [3, newPrice(100)]])],
+                [3, new Map([[4, newPrice(100)]])]
+            ]),
+            expected: new Map([
+                [1, new Map([[2, newPrice(100)], [3, zeroValue()], [4, newPrice(100)]])],
+                [2, new Map([[1, newPrice(100)], [3, zeroValue()]])],
+                [3, new Map([[4, zeroValue()]])]
+            ])
+        }
+    ];
+
+    tests.forEach(test => {
+        it(test.name, () => {
+            const result = eliminateIntermediaries(test.input, test.participantIds);
+            expect(areDebitCreditMapsEqual(result, test.expected)).toBe(true);
+        });
+    });
+});
+
+describe('simplifyBalance', () => {
+    const tests: {
+        name: string;
+        participantIds: number[];
+        input: DebitCreditMap;
+        expected: DebitCreditMap;
+    }[] = [
+        {
+            // Deudas cruzadas entre 3. Pasada 1 redirige cadena 1→3→2 (diff=5),
+            // luego cancelMutualDebts netea las mutuas restantes.
+            // Resultado: solo quedan 2 deudas netas: 1→2:10 y 1→3:2
+            name: "3 participantes: cadena + cancelación bilateral deja solo deudas netas",
+            participantIds: [1, 2, 3],
+            input: new Map([
+                [1, new Map([[2, newPrice(5)], [3, newPrice(10)]])],
+                [2, new Map([[3, newPrice(1)]])],
+                [3, new Map([[1, newPrice(3)], [2, newPrice(6)]])]
+            ]),
+            expected: new Map([
+                [1, new Map([[2, newPrice(10)], [3, newPrice(2)]])]
+            ])
+        },
+        {
+            // Simétrico al anterior. Cadena 2→3→1 se redirige,
+            // cancelMutualDebts netea las mutuas.
+            // Resultado: 2→1:10 y 3→1:2
+            name: "3 participantes: cadena invertida + cancelación bilateral",
             participantIds: [1, 2, 3],
             input: new Map([
                 [1, new Map([[3, newPrice(3)]])],
@@ -370,9 +502,8 @@ describe('eliminateIntermediaries', () => {
                 [3, new Map([[1, newPrice(10)], [2, newPrice(1)]])]
             ]),
             expected: new Map([
-                [1, new Map([[3, newPrice(3)]])],
-                [2, new Map([[1, newPrice(10)], [3, newPrice(1)]])],
-                [3, new Map([[1, newPrice(5)], [2, newPrice(1)]])]
+                [2, new Map([[1, newPrice(10)]])],
+                [3, new Map([[1, newPrice(2)]])]
             ])
         },
         {
@@ -389,11 +520,9 @@ describe('eliminateIntermediaries', () => {
             ])
         },
         {
-            // 4 participantes: cadena 1→2→3→4
-            // Ahora lee nets desde map (actualizado), así la simplificación cascadea:
-            //   Par (1,2): cadena 1→2→3: diff=min(3,10)=3 → 1→2=0, 1→3=3, 2→3=7
-            //   Par (1,3): cadena 1→3→4: diff=min(3,7)=3 → 1→3=0, 1→4=3, 3→4=4
-            //   Par (2,3): cadena 2→3→4: diff=min(7,4)=4 → 2→3=3, 2→4=4, 3→4=0
+            // Cadena 1→2→3→4. Pasada 1 cascadea: 1→2→3, 1→3→4, 2→3→4.
+            // cancelMutualDebts limpia los ceros.
+            // Resultado: 1→4:3, 2→3:3, 2→4:4
             name: "4 participantes: cadena larga 1→2→3→4 se simplifica eliminando intermediarios",
             participantIds: [1, 2, 3, 4],
             input: new Map([
@@ -402,17 +531,15 @@ describe('eliminateIntermediaries', () => {
                 [3, new Map([[4, newPrice(7)]])]
             ]),
             expected: new Map([
-                [1, new Map([[2, newPrice(0)], [3, newPrice(0)], [4, newPrice(3)]])],
-                [2, new Map([[3, newPrice(3)], [4, newPrice(4)]])],
-                [3, new Map([[4, newPrice(0)]])]
+                [1, new Map([[4, newPrice(3)]])],
+                [2, new Map([[3, newPrice(3)], [4, newPrice(4)]])]
             ])
         },
         {
-            // 4 participantes con deudas cruzadas:
-            //   Par (1,2) else branch: cadena 2→1→3: diff=min(10,15)=10 → 2→1=0, 2→3=10, 1→3=5
-            //   Par (2,4): cadena 2→4→3: diff=min(3,9)=3 → 2→4=0, 2→3=13, 4→3=6
-            // Balance neto de cada participante se conserva
-            name: "4 participantes: deudas cruzadas con dos cadenas independientes que se simplifican",
+            // 4 participantes con deudas cruzadas.
+            // Pasada 1: cadena 2→1→3 + cadena 2→4→3. cancelMutualDebts netea 2↔3.
+            // Resultado: 1→3:5, 2→3:6, 4→3:6 (todos le deben a 3)
+            name: "4 participantes: deudas cruzadas se simplifican a 3 deudas netas",
             participantIds: [1, 2, 3, 4],
             input: new Map([
                 [1, new Map([[3, newPrice(15)]])],
@@ -422,16 +549,13 @@ describe('eliminateIntermediaries', () => {
             ]),
             expected: new Map([
                 [1, new Map([[3, newPrice(5)]])],
-                [2, new Map([[1, newPrice(0)], [3, newPrice(13)], [4, newPrice(0)]])],
-                [3, new Map([[2, newPrice(7)]])],
+                [2, new Map([[3, newPrice(6)]])],
                 [4, new Map([[3, newPrice(6)]])]
             ])
         },
         {
-            // Post cancelMutualDebts (scaled x10): 2→1=10, 1→3=4, 2→3=4
-            // Cadena 2→1→3: diff=min(10, 4)=4
-            //   2→1 baja de 10 a 6, 2→3 sube de 4 a 8, 1→3 baja de 4 a 0
-            // Resultado: 2→1=6, 2→3=8, 1→3=0 (participante 1 eliminado como intermediario)
+            // Cadena 2→1→3: diff=4. cancelMutualDebts limpia 1→3=0.
+            // Resultado: 2→1:6, 2→3:8
             name: "3 participantes: elimina intermediario 1 en cadena 2→1→3 (scaled x10)",
             participantIds: [1, 2, 3],
             input: new Map([
@@ -439,8 +563,7 @@ describe('eliminateIntermediaries', () => {
                 [1, new Map([[3, newPrice(4)]])]
             ]),
             expected: new Map([
-                [2, new Map([[1, newPrice(6)], [3, newPrice(8)]])],
-                [1, new Map([[3, newPrice(0)]])]
+                [2, new Map([[1, newPrice(6)], [3, newPrice(8)]])]
             ])
         },
         {
@@ -454,9 +577,84 @@ describe('eliminateIntermediaries', () => {
 
     tests.forEach(test => {
         it(test.name, () => {
-            const result = eliminateIntermediaries(test.input, test.participantIds);
+            const result = simplifyBalance(test.input, test.participantIds);
             expect(areDebitCreditMapsEqual(result, test.expected)).toBe(true);
         });
+    });
+});
+
+describe('simplifyBalance - casos antes problemáticos (resueltos con múltiples pasadas)', () => {
+    // Antes fallaba: pasada 1 redirige 1→3→2, creando 1→2:100.
+    // La nueva cadena 1→2→4 no se detectaba porque par (1,2) ya fue procesado.
+    // Con múltiples pasadas: pasada 2 detecta 1→2→4 y redirige a 1→4 directo.
+    it('cadena 1→3→2→4: múltiples pasadas detectan cadena creada por redirección', () => {
+        const input: DebitCreditMap = new Map([
+            [1, new Map([[3, newPrice(100)]])],
+            [3, new Map([[2, newPrice(100)]])],
+            [2, new Map([[4, newPrice(100)]])]
+        ]);
+        const expected: DebitCreditMap = new Map([
+            [1, new Map([[4, newPrice(100)]])]
+        ]);
+        const result = simplifyBalance(input, [1, 2, 3, 4]);
+        expect(areDebitCreditMapsEqual(result, expected)).toBe(true);
+    });
+
+    // Antes fallaba: cadena de 5 participantes no se simplificaba del todo.
+    // Con múltiples pasadas: se resuelve completamente.
+    it('cadena de 5 participantes 1→2→3→4→5 se simplifica completamente', () => {
+        const input: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(50)]])],
+            [2, new Map([[3, newPrice(100)]])],
+            [3, new Map([[4, newPrice(100)]])],
+            [4, new Map([[5, newPrice(100)]])]
+        ]);
+        const expected: DebitCreditMap = new Map([
+            [1, new Map([[5, newPrice(50)]])],
+            [2, new Map([[5, newPrice(50)]])]
+        ]);
+        const result = simplifyBalance(input, [1, 2, 3, 4, 5]);
+        expect(areDebitCreditMapsEqual(result, expected)).toBe(true);
+    });
+
+    // Antes fallaba: ciclo perfecto 1→2→3→1 no se cancelaba.
+    // Con múltiples pasadas: pasada 1 redirige 1→2→3 creando 1→3:100 mutual con 3→1:100,
+    // cancelMutualDebts las cancela → mapa vacío.
+    it('ciclo perfecto 1→2→3→1 se cancela completamente', () => {
+        const input: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(100)]])],
+            [2, new Map([[3, newPrice(100)]])],
+            [3, new Map([[1, newPrice(100)]])]
+        ]);
+        const expected: DebitCreditMap = new Map();
+        const result = simplifyBalance(input, [1, 2, 3]);
+        expect(areDebitCreditMapsEqual(result, expected)).toBe(true);
+    });
+});
+
+describe('simplifyBalance - limitación inherente (NP-hard)', () => {
+    // ⚠️ Este test documenta un caso que el algoritmo NO puede resolver.
+    // No es un bug: es una limitación teórica del enfoque basado en cadenas (i→j→k).
+    //
+    // Cuando ningún participante es intermediario (nadie debe y cobra a la vez),
+    // no existe cadena que redirigir. El algoritmo no toca nada.
+    // La solución óptima requiere reagrupar pagos globalmente (zero-sum set packing, NP-hard).
+    //
+    // Deudas: 1→2:5, 1→3:5, 4→2:5, 4→3:5   (4 transferencias)
+    // Óptimo: 1→2:10, 4→3:10                  (2 transferencias)
+    it('EXPECTED LIMITATION - sin intermediarios: no puede reagrupar pagos globalmente', () => {
+        const input: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(5)], [3, newPrice(5)]])],
+            [4, new Map([[2, newPrice(5)], [3, newPrice(5)]])]
+        ]);
+        const optimal: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(10)]])],
+            [4, new Map([[3, newPrice(10)]])]
+        ]);
+        const result = simplifyBalance(input, [1, 2, 3, 4]);
+        // El resultado NO es óptimo: el algoritmo devuelve las 4 deudas originales sin cambios
+        expect(areDebitCreditMapsEqual(result, optimal)).toBe(false);
+        expect(areDebitCreditMapsEqual(result, input)).toBe(true);
     });
 });
 

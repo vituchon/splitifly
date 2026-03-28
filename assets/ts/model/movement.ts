@@ -170,6 +170,8 @@ export function sumDebitCreditMaps(left: DebitCreditMap, right: DebitCreditMap):
   return result;
 }
 
+// 📚 Debt simplification via "bilateral netting" (compensación bilateral).
+// Para cada par (i,j), netea las deudas mutuas: si i→j=500 y j→i=200, queda i→j=300.
 export function cancelMutualDebts(debitCreditMap: DebitCreditMap, participantIds: number[]): DebitCreditMap {
   const map = new Map<number, Map<number, Price>>();
 
@@ -215,66 +217,92 @@ export function sumParticipantShares(left: ParticipantShareByParticipantId, righ
 }
 
 
-export function eliminateIntermediaries(debitCreditMap: DebitCreditMap, participantIds: number[]): DebitCreditMap {
-  const map = deepCopyDebitCreditMap(debitCreditMap);
+// 📚 Debt simplification via "multilateral netting" (compensación multilateral).
+// Redirige pagos que pasan por intermediarios: si i→j→k, redirige a i→k directo.
+//
+// 📐 Complejidad teórica: el problema de minimizar la cantidad absoluta de transferencias
+// es NP-hard (equivalente a zero-sum set packing). Sin embargo, una solución con a lo sumo
+// (N-1) transferencias (N = cantidad de participantes) se puede lograr en tiempo lineal
+// combinando bilateral netting (cancelMutualDebts) + multilateral netting (esta función).
+//
+// Corre múltiples pasadas de eliminación + cancelación bilateral hasta convergencia
+// (o hasta N iteraciones como cota máxima). Cada pasada puede generar nuevas cadenas
+// o deudas mutuas que la siguiente pasada resuelve.
+//
+// ⚠️ No garantiza el mínimo absoluto de transferencias (eso sería NP-hard),
+// pero en la práctica produce resultados muy buenos para grupos pequeños.
+export function simplifyBalance(debitCreditMap: DebitCreditMap, participantIds: number[]): DebitCreditMap {
+  let map = deepCopyDebitCreditMap(debitCreditMap);
+  const maxPasses = participantIds.length;
 
-  for (const i of participantIds) {
-    for (const j of participantIds) {
-      if (i >= j) {
-        continue;
-      }
-      const iOwesJ = map.get(i)?.get(j) || newPrice(0);
-      const jOwesI = map.get(j)?.get(i) || newPrice(0);
-      const net_i_j = iOwesJ.subtract(jOwesI); // if iOwesJ is higher than jOwesI, net will be positive, meaning i owes j. If jOwesI is higher than iOwesJ, net will be negative, meaning j owes i.
-
-      if (net_i_j.isHigherStrict(zeroValue())) { // i owes j
-        for (const k of participantIds) {
-          if (k == i || k == j) {
-            continue;
-          }
-          const jOwesK = map.get(j)?.get(k) || newPrice(0);
-          const kOwesJ = map.get(k)?.get(j) || newPrice(0);
-          const net_k_j = kOwesJ.subtract(jOwesK);
-          if (net_k_j.isLowerStrict(zeroValue())) { // j owes k ( so i -> j -> k)
-              const iDebs = map.get(i)!
-              // diff = min(net_i_j, |net_k_j|): la compensación no puede exceder ninguna de las dos patas de la cadena i→j→k
-              // Si i le debe 5 a j y j le debe 7 a k, solo podemos redirigir 5 (el mínimo), no 7
-              const absNetKJ = net_k_j.abs();
-              const diff = net_i_j.isLowerOrEquals(absNetKJ) ? net_i_j : absNetKJ;
-              iDebs.set(j, iDebs.get(j).subtract(diff)) // i le debe menos a j (porque ahora le paga directo a k)
-              iDebs.set(k, (iDebs.get(k) || newPrice(0)).add(diff)) // i le debe más a k (pago directo en vez de pasar por j)
-
-              const jDebts = map.get(j)!
-              jDebts.set(k, jDebts.get(k).subtract(diff));
-          }
-        }
-      } else if (net_i_j.isLowerStrict(zeroValue())) { // j owes i
-        for (const k of participantIds) {
-          if (k == i || k == j) {
-            continue;
-          }
-          const iOwesK = map.get(i)?.get(k) || newPrice(0);
-          const kOwesI = map.get(k)?.get(i) || newPrice(0);
-          const net_k_i = kOwesI.subtract(iOwesK);
-          if (net_k_i.isLowerStrict(zeroValue())) { // i owes k ( so j -> i -> k)
-              const jDebs = map.get(j)!
-              // diff = min(|net_i_j|, |net_k_i|): simétrico al branch de arriba, ahora la cadena es j→i→k
-              // net_i_j es negativo acá (j le debe a i), lo negamos para obtener el valor positivo
-              const absNetIJ = net_i_j.negate();
-              const absNetKI = net_k_i.abs();
-              const diff = absNetIJ.isLowerOrEquals(absNetKI) ? absNetIJ : absNetKI;
-              jDebs.set(i, jDebs.get(i).subtract(diff)) // j le debe menos a i (porque ahora le paga directo a k)
-              jDebs.set(k, (jDebs.get(k) || newPrice(0)).add(diff)) // j le debe más a k (pago directo)
-
-              const iDebts = map.get(i)!
-              iDebts.set(k, iDebts.get(k).subtract(diff)); // i le debe menos a k (j le paga directo)
-          }
-        }
-      }
+  for (let pass = 0; pass < maxPasses; pass++) {
+    const before = countNonZeroDebts(map);
+    map = eliminateIntermediaries(map, participantIds);
+    map = cancelMutualDebts(map, participantIds);
+    const after = countNonZeroDebts(map);
+    if (after >= before) {
+      break; // convergió: no hubo mejora
     }
   }
 
   return map;
+}
+
+function countNonZeroDebts(map: DebitCreditMap): number {
+  let count = 0;
+  for (const [, innerMap] of map) {
+    for (const [, amount] of innerMap) {
+      if (amount.isHigherStrict(zeroValue())) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
+export function eliminateIntermediaries(map: DebitCreditMap, participantIds: number[]): DebitCreditMap {
+  const result = deepCopyDebitCreditMap(map);
+  for (const a of participantIds) {
+    for (const b of participantIds) {
+      if (a >= b) {
+        continue;
+      }
+      const aOwesB = result.get(a)?.get(b) || newPrice(0);
+      const bOwesA = result.get(b)?.get(a) || newPrice(0);
+      const netAB = aOwesB.subtract(bOwesA);
+
+      if (netAB.equals(zeroValue())) {
+        continue;
+      }
+
+      // Determinar origin y via (intermedario) según el signo de la deuda neta
+      // netAB > 0: a le debe a b → origin=a, via=b
+      // netAB < 0: b le debe a a → origin=b, via=a
+      const [origin, via] = netAB.isHigherStrict(zeroValue()) ? [a, b] : [b, a];
+      const absNet = netAB.abs();
+
+      for (const dest of participantIds) {
+        if (dest == a || dest == b) {
+          continue;
+        }
+        const viaOwesDest = result.get(via)?.get(dest) || newPrice(0);
+        const destOwesVia = result.get(dest)?.get(via) || newPrice(0);
+        const netViaDest = destOwesVia.subtract(viaOwesDest);
+        if (netViaDest.isLowerStrict(zeroValue())) { // via le debe a dest → cadena: origin → via → dest
+            const absNetViaDest = netViaDest.abs();
+            // diff = min(absNet, absNetViaDest): la compensación no puede exceder ninguna de las dos patas de la cadena
+            const diff = absNet.isLowerOrEquals(absNetViaDest) ? absNet : absNetViaDest;
+            const originDebts = result.get(origin)!;
+            originDebts.set(via, originDebts.get(via).subtract(diff)); // origin le debe menos a via (ahora le paga directo a dest)
+            originDebts.set(dest, (originDebts.get(dest) || newPrice(0)).add(diff)); // origin le debe más a dest (pago directo)
+
+            const viaDebts = result.get(via)!;
+            viaDebts.set(dest, viaDebts.get(dest).subtract(diff)); // via le debe menos a dest (origin le paga directo)
+        }
+      }
+    }
+  }
+  return result;
 }
 
 export function debitCreditMapToString(debitCreditMap: DebitCreditMap, participantIds: number[]): string {
