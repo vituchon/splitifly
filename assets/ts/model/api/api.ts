@@ -204,8 +204,8 @@ export async function calculateAggregatedBalances(groupId: number): Promise<[Deb
 
     const participantIds =  (await participantsRepository.getByGroupId(groupId)).map(p => p.id);
     const simplifiedBalance = cancelMutualDebts(accumulatedBalance, participantIds);
-    //const moreSimplifiedBalance = eliminateIntermediaries(simplifiedBalance, participantIds);
-    return [simplifiedBalance, accumulatedBalance, accumulatedShare];
+    const moreSimplifiedBalance = eliminateIntermediaries(simplifiedBalance, participantIds);
+    return [moreSimplifiedBalance, accumulatedBalance, accumulatedShare];
 }
 
 export async function calculateBalance(groupId: number, movementId: number): Promise<[DebitCreditMap, ParticipantShareByParticipantId]> {
