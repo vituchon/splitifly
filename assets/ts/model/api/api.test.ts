@@ -5,7 +5,7 @@ import {
     calculateAggregatedBalances,
     calculateBalance
 } from './api';
-import { Movement, DebitCreditMap, ParticipantShareByParticipantId, sumDebitCreditMaps, sumParticipantShares, simplifyDebitCreditMap } from '../movement';
+import { Movement, DebitCreditMap, ParticipantShareByParticipantId, sumDebitCreditMaps, sumParticipantShares, cancelMutualDebts } from '../movement';
 import { newPrice } from '../price';
 import { _Number } from '../../util/number';
 
@@ -159,14 +159,14 @@ describe('API Integration Tests', () => {
     });
 });
 
-describe('simplifyDebitCreditMap', () => {
+describe('cancelMutualDebts', () => {
     it('should cancel mutual debts between two participants', () => {
         // A owes B 500, B owes A 200 → net: A owes B 300
         const map: DebitCreditMap = new Map([
             [1, new Map([[2, newPrice(500)]])],
             [2, new Map([[1, newPrice(200)]])],
         ]);
-        const result = simplifyDebitCreditMap(map, [1, 2]);
+        const result = cancelMutualDebts(map, [1, 2]);
         const expected: DebitCreditMap = new Map([
             [1, new Map([[2, newPrice(300)]])],
         ]);
@@ -179,7 +179,7 @@ describe('simplifyDebitCreditMap', () => {
             [1, new Map([[2, newPrice(300)]])],
             [2, new Map([[1, newPrice(300)]])],
         ]);
-        const result = simplifyDebitCreditMap(map, [1, 2]);
+        const result = cancelMutualDebts(map, [1, 2]);
         expect(result.size).toBe(0);
     });
 
@@ -193,7 +193,7 @@ describe('simplifyDebitCreditMap', () => {
             [2, new Map([[1, newPrice(400)]])],
             [3, new Map([[1, newPrice(50)]])],
         ]);
-        const result = simplifyDebitCreditMap(map, [1, 2, 3]);
+        const result = cancelMutualDebts(map, [1, 2, 3]);
         const expected: DebitCreditMap = new Map([
             [2, new Map([[1, newPrice(300)]])],
             [1, new Map([[3, newPrice(150)]])],
@@ -203,8 +203,26 @@ describe('simplifyDebitCreditMap', () => {
 
     it('should handle map with no debts (empty map)', () => {
         const map: DebitCreditMap = new Map();
-        const result = simplifyDebitCreditMap(map, [1, 2, 3]);
+        const result = cancelMutualDebts(map, [1, 2, 3]);
         expect(result.size).toBe(0);
+    });
+
+    it('should cancel mutual debts for 3 participants with cross debts (scaled x10)', () => {
+        // 1→2=5, 1→3=20, 2→1=15, 2→3=20, 3→1=16, 3→2=16
+        // net(1,2) = 5 - 15 = -10 → 2 owes 1: 10
+        // net(1,3) = 20 - 16 = +4 → 1 owes 3: 4
+        // net(2,3) = 20 - 16 = +4 → 2 owes 3: 4
+        const map: DebitCreditMap = new Map([
+            [1, new Map([[2, newPrice(5)], [3, newPrice(20)]])],
+            [2, new Map([[1, newPrice(15)], [3, newPrice(20)]])],
+            [3, new Map([[1, newPrice(16)], [2, newPrice(16)]])],
+        ]);
+        const result = cancelMutualDebts(map, [1, 2, 3]);
+        const expected: DebitCreditMap = new Map([
+            [2, new Map([[1, newPrice(10)], [3, newPrice(4)]])],
+            [1, new Map([[3, newPrice(4)]])],
+        ]);
+        expect(areDebitCreditMapsEqual(result, expected)).toBe(true);
     });
 
     it('should keep one-way debts unchanged', () => {
@@ -212,7 +230,7 @@ describe('simplifyDebitCreditMap', () => {
         const map: DebitCreditMap = new Map([
             [1, new Map([[2, newPrice(500)]])],
         ]);
-        const result = simplifyDebitCreditMap(map, [1, 2]);
+        const result = cancelMutualDebts(map, [1, 2]);
         const expected: DebitCreditMap = new Map([
             [1, new Map([[2, newPrice(500)]])],
         ]);

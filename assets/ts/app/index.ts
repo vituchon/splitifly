@@ -8,8 +8,8 @@ import { DebitCreditMap } from "../model/movement";
 interface UIGroup extends Group {
   participants: Participant[];
   movements: Movement[];
-
 }
+
 async function renderGroups(appState: app.State) {
   const groupList = document.getElementById('group-list');
   groupList.innerHTML = '';
@@ -17,8 +17,8 @@ async function renderGroups(appState: app.State) {
     return {
       id: group.id,
       name: group.name,
-      participants: [],
-      movements: [],
+      participants: [] as Participant[],
+      movements: [] as Movement[],
     }
   }); // dev notes: The map creates a copy since the group object is modified below  (note how the participants and movements properties are defined)
   (groups || []).forEach(async group => {
