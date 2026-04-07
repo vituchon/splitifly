@@ -82,6 +82,7 @@ self.addEventListener('install', (event) => {
       "/assets/js/util/fraction.js",
       "/assets/js/util/number.js",
       "/assets/images/catty.jpg",
+      "/assets/images/splitifly_logo.png",
       "/assets/images/worker.jpeg",
       "/assets/manifest.json"
     ])
