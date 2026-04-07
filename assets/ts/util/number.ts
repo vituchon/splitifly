@@ -1,26 +1,24 @@
-import { zeroValue } from "../model/price";
-
-export interface _Number {
-  add(other: _Number): _Number;
-  subtract(other: _Number): _Number;
-  multiply(other: _Number): _Number;
-  divide(other: _Number): _Number;
-  negate(): _Number;
-  abs(): _Number;
+export interface _Number<T extends _Number<T>> {
+  add(other: T): T;
+  subtract(other: T): T;
+  multiply(other: T): T;
+  divide(other: T): T;
+  negate(): T;
+  abs(): T;
   toNumber(): number;
   toString(): string;
-  compareTo(other: _Number): number;
-  equals(other: _Number): boolean;
-  isLowerStrict(other: _Number): boolean;
-  isLowerOrEquals(other: _Number): boolean;
-  isHigherStrict(other: _Number): boolean;
-  isHigherOrEquals(other: _Number): boolean;
+  compareTo(other: T): number;
+  equals(other: T): boolean;
+  isLowerStrict(other: T): boolean;
+  isLowerOrEquals(other: T): boolean;
+  isHigherStrict(other: T): boolean;
+  isHigherOrEquals(other: T): boolean;
 }
 
-export class NativeNumber implements _Number {
+export class NativeNumber implements _Number<NativeNumber> {
   public value: number;
-  public static ONE: _Number = new NativeNumber(1);
-  public static ZERO: _Number = new NativeNumber(0)
+  public static ONE: NativeNumber = new NativeNumber(1);
+  public static ZERO: NativeNumber = new NativeNumber(0)
 
   private constructor(value: number) {
     this.value = value
@@ -51,23 +49,19 @@ export class NativeNumber implements _Number {
     }
   }
 
-  add(_other: _Number): NativeNumber {
-    const other = _other as unknown as NativeNumber
+  add(other: NativeNumber): NativeNumber {
     return new NativeNumber(this.value + other.value);
   }
 
-  subtract(_other: _Number): NativeNumber {
-    const other = _other as unknown as NativeNumber
+  subtract(other: NativeNumber): NativeNumber {
     return new NativeNumber(this.value - other.value);
   }
 
-  multiply(_other: _Number): NativeNumber {
-    const other = _other as unknown as NativeNumber
+  multiply(other: NativeNumber): NativeNumber {
     return new NativeNumber(this.value * other.value);
   }
 
-  divide(_other: _Number): NativeNumber {
-    const other = _other as unknown as NativeNumber
+  divide(other: NativeNumber): NativeNumber {
     if (other.value === 0) {
       throw new Error("Cannot divide by zero");
     }
@@ -75,7 +69,7 @@ export class NativeNumber implements _Number {
   }
 
   abs(): NativeNumber {
-    if (this.isLowerStrict(zeroValue())) {
+    if (this.value < 0) {
       return new NativeNumber(-this.value);
     } else {
       return new NativeNumber(this.value);
@@ -86,9 +80,8 @@ export class NativeNumber implements _Number {
     return new NativeNumber(-this.value);
   }
 
-  compareTo(_other: _Number): number{
+  compareTo(other: NativeNumber): number{
       // La comparación la restringo a objetos del mismo tipo
-      const other = _other as unknown as NativeNumber
       if (this.value < other.value) { //Si el de arriba (an * bd) es mayor (resultado mayor a 1) entonces este objeto es mayor al otro
         return -1;
       } else if (this.value === other.value) {//si son iguales (resultado igual a 1) entonces son iguales
@@ -106,23 +99,23 @@ export class NativeNumber implements _Number {
     return `${this.value}`;
   }
 
-  equals(other: _Number): boolean {
+  equals(other: NativeNumber): boolean {
     return this.compareTo(other) === 0
   }
 
-  isLowerStrict(other: _Number): boolean {
+  isLowerStrict(other: NativeNumber): boolean {
     return this.compareTo(other) < 0
   }
 
-  isLowerOrEquals(other: _Number): boolean {
+  isLowerOrEquals(other: NativeNumber): boolean {
     return this.compareTo(other) <= 0
   }
 
-  isHigherStrict(other: _Number): boolean {
+  isHigherStrict(other: NativeNumber): boolean {
     return this.compareTo(other) > 0
   }
 
-  isHigherOrEquals(other: _Number): boolean {
+  isHigherOrEquals(other: NativeNumber): boolean {
     return this.compareTo(other) >= 0
   }
 
@@ -136,4 +129,3 @@ export class NativeNumber implements _Number {
     return this.value;
   }
 }
-

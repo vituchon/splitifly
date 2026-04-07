@@ -7,15 +7,15 @@ import {
 } from './api';
 import { Movement, DebitCreditMap, ParticipantShareByParticipantId, sumDebitCreditMaps, sumParticipantShares, cancelMutualDebts } from '../movement';
 import { newPrice } from '../price';
-import { _Number } from '../../util/number';
+import { Price } from '../price';
 
 
 describe('API Integration Tests', () => {
     interface Movement {
       groupId: number;
-      amount: _Number;
+      amount: Price;
       concept: string;
-      participantMovements: { participantId: number; amount: _Number; }[];
+      participantMovements: { participantId: number; amount: Price; }[];
     }
 
     describe('Normal API flow from good client', () => {
@@ -312,11 +312,11 @@ function it(description: string, fn: () => void) {
 function expect(actual: boolean): { toBe(expected: boolean): void };
 function expect(actual: number): { toBe(expected: number): void };
 function expect(actual: string): { toBe(expected: string): void };
-function expect(actual: _Number): { toBe(expected: _Number): void };
+function expect(actual: Price): { toBe(expected: Price): void };
 
-function expect(actual: boolean | number | string | _Number) {
+function expect(actual: boolean | number | string | Price) {
   return {
-      toBe: (expected: boolean | number | string | _Number) => {
+      toBe: (expected: boolean | number | string | Price) => {
           if (typeof actual === 'boolean' && typeof expected === 'boolean') {
               if (actual !== expected) {
                   throw new Error(`Expected ${expected} but got ${actual}`);
@@ -340,6 +340,6 @@ function expect(actual: boolean | number | string | _Number) {
   }
 }
 
-function isNumber(obj: any): obj is _Number {
+function isNumber(obj: any): obj is Price {
   return obj && typeof obj.equals === 'function';
 }

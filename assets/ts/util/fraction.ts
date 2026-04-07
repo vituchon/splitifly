@@ -1,6 +1,6 @@
 import { _Number } from "./number";
 
-export class Fraction implements _Number {
+export class Fraction implements _Number<Fraction> {
   public numerator: number;
   public denominator: number;
   public static ZERO: Fraction = new Fraction(0, 1);
@@ -44,27 +44,23 @@ export class Fraction implements _Number {
     return b === 0 ? a : Fraction.gcd(b, a % b);
   }
 
-  add(_other: _Number): Fraction {
-    const other = _other as unknown as Fraction
+  add(other: Fraction): Fraction {
     const newNumerator = this.numerator * other.denominator + other.numerator * this.denominator;
     const newDenominator = this.denominator * other.denominator;
     return new Fraction(newNumerator, newDenominator);
   }
 
-  subtract(_other: _Number): Fraction {
-    const other = _other as unknown as Fraction
+  subtract(other: Fraction): Fraction {
     const newNumerator = this.numerator * other.denominator - other.numerator * this.denominator;
     const newDenominator = this.denominator * other.denominator;
     return new Fraction(newNumerator, newDenominator);
   }
 
-  multiply(_other: _Number): Fraction {
-    const other = _other as unknown as Fraction
+  multiply(other: Fraction): Fraction {
     return new Fraction(this.numerator * other.numerator, this.denominator * other.denominator);
   }
 
-  divide(_other: _Number): Fraction {
-    const other = _other as unknown as Fraction
+  divide(other: Fraction): Fraction {
     if (other.numerator === 0) {
       throw new Error("Cannot divide by zero");
     }
@@ -83,9 +79,8 @@ export class Fraction implements _Number {
     }
   }
 
-  compareTo(_other: _Number): number{
+  compareTo(other: Fraction): number{
       // La comparación la restringo a objetos del mismo tipo
-      const other = _other as unknown as Fraction
       const an = this.numerator;
       const ad = this.denominator;
       const bn = other.numerator;
@@ -110,26 +105,25 @@ export class Fraction implements _Number {
     return `${this.numerator}/${this.denominator}`;
   }
 
-  equals(other: _Number): boolean {
+  equals(other: Fraction): boolean {
     return this.compareTo(other) === 0
   }
 
-  isLowerStrict(other: _Number): boolean {
+  isLowerStrict(other: Fraction): boolean {
     return this.compareTo(other) < 0
   }
 
-  isLowerOrEquals(other: _Number): boolean {
+  isLowerOrEquals(other: Fraction): boolean {
     return this.compareTo(other) <= 0
   }
 
-  isHigherStrict(other: _Number): boolean {
+  isHigherStrict(other: Fraction): boolean {
     return this.compareTo(other) > 0
   }
 
-  isHigherOrEquals(other: _Number): boolean {
+  isHigherOrEquals(other: Fraction): boolean {
     return this.compareTo(other) >= 0
   }
 }
 
 export default Fraction;
-
