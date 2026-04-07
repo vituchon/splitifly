@@ -1,69 +1,15 @@
 import Fraction from "../util/fraction";
-import { _Number } from "../util/number";
+import { _Number, NativeNumber } from "../util/number";
 
-export type Price = _Number;
-/*
-// some funcy idea to play with....
-interface PriceBuilder {
-  newPrice(amount: number, currency: string) : Price
-  fromJsonFraction(value: any) : Price
-  fromJsonNumber(value: any) : Price
-  parsePrice(number: string): Price
-  stringifyPrice(amount: Price): string
-  zeroValue(): Price
-}
-// so i can define a class like this...
-class PriceFractionBasedBuilder implements PriceBuilder {
-  newPrice(value: number, currency: string = "ARS"): _Number {
-    if (value === 0) {
-      return Fraction.ZERO
-    }
-    if (value === 1) {
-      return Fraction.ONE
-    }
-    return Fraction.fromInteger(value)
-  }
-  fromJsonFraction(value: any): _Number {
-    return Fraction.fromFraction(value.numerator, value.denominator);
-  }
-  fromJsonNumber(value: any): _Number {
-    return Fraction.fromInteger(value);
-  }
-  parsePrice(number: string): _Number {
-    return Fraction.fromDecimal(number, ".")
-  }
-  stringifyPrice(amount: _Number): string {
-    return amount.toNumber().toString()
-  }
-  zeroValue(): _Number {
-    return Fraction.ZERO
-  }
-}
-// so I can use an object like this....
-const priceBuilder = new PriceFractionBasedBuilder()
-*/
+// ─── PriceBuilder: Strategy pattern for swapping numerical implementation ───
 
-export function newPrice(amount: number, currency: string = "ARS") : Price {
-  if (amount === 0) {
-    return Fraction.ZERO
-  }
-  if (amount === 1) {
-    return Fraction.ONE
-  }
-  return Fraction.fromInteger(amount)
-}
-
-export function fromJsonFraction(value: any) {
-  return Fraction.fromFraction(value.numerator, value.denominator);
-}
-
-export function fromJsonNumber(value: any) {
-  return Fraction.fromInteger(value);
-}
-
-export function parsePrice(number: string): Price {
-  number = number.replace(/\./g, "").replace(/\$/g,"").trim();
-  return Fraction.fromDecimal(number, ",")
+interface PriceBuilder<T extends _Number<T>> {
+  newPrice(amount: number, currency?: string): T;
+  fromJsonFraction(value: any): T;
+  fromJsonNumber(value: any): T;
+  parsePrice(number: string): T;
+  stringifyPrice(amount: T): string;
+  zeroValue(): T;
 }
 
 const amountFormatter = new Intl.NumberFormat("es-AR", {
@@ -73,46 +19,82 @@ const amountFormatter = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 4
 });
 
-export function stringifyPrice(amount: Price): string {
-  return amountFormatter.format(amount.toNumber())
-}
-
-export function zeroValue(): Price {
-  return Fraction.ZERO
-}
-
-/*
-// uncomment if you wanna use native js numbers as underlying numrical "data structure"
-export function newPrice(amount: number, currency: string = "ARS") : Price {
-  if (amount === 0) {
-    return NativeNumber.ZERO
+class FractionPriceBuilder implements PriceBuilder<Fraction> {
+  newPrice(amount: number, currency: string = "ARS"): Fraction {
+    if (amount === 0) return Fraction.ZERO;
+    if (amount === 1) return Fraction.ONE;
+    return Fraction.fromInteger(amount);
   }
-  if (amount === 1) {
-    return NativeNumber.ONE
+  fromJsonFraction(value: any): Fraction {
+    return Fraction.fromFraction(value.numerator, value.denominator);
   }
-  return NativeNumber.fromInteger(amount)
+  fromJsonNumber(value: any): Fraction {
+    return Fraction.fromInteger(value);
+  }
+  parsePrice(number: string): Fraction {
+    number = number.replace(/\./g, "").replace(/\$/g, "").trim();
+    return Fraction.fromDecimal(number, ",");
+  }
+  stringifyPrice(amount: Fraction): string {
+    return amountFormatter.format(amount.toNumber());
+  }
+  zeroValue(): Fraction {
+    return Fraction.ZERO;
+  }
 }
 
-export function fromJsonFraction(value: any) {
-  return NativeNumber.fromFraction(value.numerator, value.denominator);
+class NativeNumberPriceBuilder implements PriceBuilder<NativeNumber> {
+  newPrice(amount: number, currency: string = "ARS"): NativeNumber {
+    if (amount === 0) return NativeNumber.ZERO;
+    if (amount === 1) return NativeNumber.ONE;
+    return NativeNumber.fromInteger(amount);
+  }
+  fromJsonFraction(value: any): NativeNumber {
+    return NativeNumber.fromFraction(value.numerator, value.denominator);
+  }
+  fromJsonNumber(value: any): NativeNumber {
+    return NativeNumber.fromInteger(value);
+  }
+  parsePrice(number: string): NativeNumber {
+    number = number.replace(/\./g, "").replace(/\$/g, "").trim();
+    return NativeNumber.fromDecimalString(number, ",");
+  }
+  stringifyPrice(amount: NativeNumber): string {
+    return amountFormatter.format(amount.toNumber());
+  }
+  zeroValue(): NativeNumber {
+    return NativeNumber.ZERO;
+  }
 }
 
-export function fromJsonNumber(value: any) {
-  return NativeNumber.fromInteger(value);
+// ═══ SWITCH: cambiar estas 2 líneas para intercambiar implementación ═══
+type PriceImpl = Fraction;
+const builder: PriceBuilder<PriceImpl> = new FractionPriceBuilder();
+// type PriceImpl = NativeNumber;
+// const builder: PriceBuilder<PriceImpl> = new NativeNumberPriceBuilder();
+
+export type Price = PriceImpl;
+
+export function newPrice(amount: number, currency: string = "ARS"): Price {
+  return builder.newPrice(amount, currency);
+}
+
+export function fromJsonFraction(value: any): Price {
+  return builder.fromJsonFraction(value);
+}
+
+export function fromJsonNumber(value: any): Price {
+  return builder.fromJsonNumber(value);
 }
 
 export function parsePrice(number: string): Price {
-  return NativeNumber.fromDecimalString(number, ".")
+  return builder.parsePrice(number);
 }
 
 export function stringifyPrice(amount: Price): string {
-  return amount.toNumber().toString()
+  return builder.stringifyPrice(amount);
 }
 
 export function zeroValue(): Price {
-  return NativeNumber.ZERO
-}*/
-
-
-
-
+  return builder.zeroValue();
+}

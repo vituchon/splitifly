@@ -1,4 +1,4 @@
-import { _Number } from '../util/number';
+import { Price } from './price';
 import { Movement, ParticipantMovement, ParticipantShareByParticipantId, DebitCreditMap, MovementType, isTransferMovement } from './movement';
 import {
     buildParticipantsExpenseShare,
@@ -22,7 +22,7 @@ describe('Movement Calculations', () => {
           name: string;
           movement: Movement;
           participantMovements: ParticipantMovement[];
-          expected: Map<number, Map<number, _Number>>;
+          expected: Map<number, Map<number, Price>>;
         }[] = [
             {
                 name: "Movement fully covered by participant 1, resulting in participant 2 owing",
@@ -154,8 +154,8 @@ describe('CalculateDebitCreditMapForTransfer', () => {
     const tests: {
         name: string;
         movement: Movement;
-        shares: Map<number, _Number>;
-        expected: Map<number, Map<number, _Number>>;
+        shares: Map<number, Price>;
+        expected: Map<number, Map<number, Price>>;
     }[] = [
         {
             name: "Participant 1 transfer to participant 2, participant 2 (receiver) owes participant 1 (emitter)",
@@ -727,11 +727,11 @@ function it(description: string, fn: () => void) {
 // following advice from chatgpt (https://stackoverflow.com/a/13212871/903998)
 function expect(actual: boolean): { toBe(expected: boolean): void };
 function expect(actual: number): { toBe(expected: number): void };
-function expect(actual: _Number): { toBe(expected: _Number): void };
+function expect(actual: Price): { toBe(expected: Price): void };
 
-function expect(actual: boolean | number | _Number) {
+function expect(actual: boolean | number | Price) {
     return {
-        toBe: (expected: boolean | number | _Number) => {
+        toBe: (expected: boolean | number | Price) => {
             if (typeof actual === 'boolean' && typeof expected === 'boolean') {
                 if (actual !== expected) {
                     throw new Error(`Expected ${expected} but got ${actual}`);
@@ -751,6 +751,6 @@ function expect(actual: boolean | number | _Number) {
     };
 }
 
-function isNumber(obj: any): obj is _Number {
+function isNumber(obj: any): obj is Price {
   return obj && typeof obj.equals === 'function';
 }
