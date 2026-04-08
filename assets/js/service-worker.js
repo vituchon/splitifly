@@ -83,6 +83,7 @@ self.addEventListener('install', (event) => {
       "/assets/js/util/number.js",
       "/assets/images/catty.jpg",
       "/assets/images/splitifly_logo.png",
+      "/assets/images/splitifly_logo_2.png",
       "/assets/images/worker.jpeg",
       "/assets/manifest.json"
     ])

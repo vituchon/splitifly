@@ -10,13 +10,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/assets/images/splitifly_logo.png",
+      "src": "/assets/images/splitifly_logo_2.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/images/splitifly_logo.png",
+      "src": "/assets/images/splitifly_logo_2.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
