@@ -1,9 +1,20 @@
 import * as app from "./app";
 import * as api from "./../model/api/api";
 import { Group, Participant } from "../model/group";
-import { Movement, isTransferMovement } from "../model/movement";
+import { Movement, MovementError, isTransferMovement } from "../model/movement";
 import { parsePrice, Price, stringifyPrice, zeroValue } from "../model/price";
 import { DebitCreditMap } from "../model/movement";
+
+const errorMessages: Record<string, string> = {
+  'error.movement.amount_zero': 'El monto del movimiento no puede ser cero',
+  'error.movement.amount_mismatch': 'El monto del movimiento no coincide con la suma de las contribuciones',
+  'error.movement.shares_not_zero': 'La suma de las partes debe ser igual a cero',
+  'error.movement.participant_wrong_group': 'El participante no pertenece al grupo del movimiento',
+};
+
+function translateError(error: Error): string {
+  return errorMessages[error.message] || error.message;
+}
 
 interface UIGroup extends Group {
   participants: Participant[];
@@ -300,7 +311,7 @@ async function deleteGroup(groupId: number) {
     renderGroups(app.state);
     console.log('Group deleted successfully:', groupId);
   } catch (error) {
-    console.error("Error deleting group:", error);
+    console.log("Error deleting group:", error);
   }
 }
 
@@ -313,7 +324,7 @@ async function deleteParticipant(participantId: number) {
     if (error instanceof api.ParticipantDeletionError) {
       alert("No se puede eliminar el participante porque tiene movimientos asociados.\nPrimero eliminá los movimientos en los que está involucrado.");
     } else {
-      console.error("Error deleting participant:", error);
+      console.log("Error deleting participant:", error);
     }
   }
 }
@@ -324,7 +335,7 @@ async function deleteMovement(movementId: number) {
     renderGroups(app.state);
     console.log('Movement deleted successfully:', movementId);
   } catch (error) {
-    console.error('Error deleting movement:', error);
+    console.log('Error deleting movement:', error);
   }
 }
 
@@ -358,11 +369,15 @@ document.getElementById('add-expense-movement-confirm-btn').addEventListener('cl
   try {
     const m = await app.addExpenseMovement(movement);
     console.log('Expense added successfully:', m);
+    closeExpenseMovementModal()
   } catch (error) {
-    console.error('Error adding expense:', error);
+    if (error instanceof MovementError) {
+      console.log('Validation error:', error.message, error.details || '');
+      alert(translateError(error));
+    } else {
+      console.error('Error adding expense:', error);
+    }
   }
-
-  closeExpenseMovementModal()
 });
 
 
@@ -397,11 +412,15 @@ document.getElementById('add-transfer-movement-confirm-btn').addEventListener('c
   try {
     const m = await app.addTransferMovement(transferMovement);
     console.log('Transfer added successfully:', m);
+    closeTransferMovementModal()
   } catch (error) {
-    console.error('Error adding transfer:', error);
+    if (error instanceof MovementError) {
+      console.log('Validation error:', error.message, error.details || '');
+      alert(translateError(error));
+    } else {
+      console.error('Error adding transfer:', error);
+    }
   }
-
-  closeTransferMovementModal()
 });
 
 function openParticipantModal(groupId: number) {

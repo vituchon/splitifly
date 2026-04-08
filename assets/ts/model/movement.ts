@@ -74,23 +74,31 @@ export function buildParticipantTransferMovements(movement: TransferMovement): P
 }
 
 export class MovementError extends Error {
-  constructor(message: string) {
+  public details?: string;
+  constructor(message: string, details?: string) {
       super(message);
       this.name = 'MovementError';
+      this.details = details;
+  }
+}
+
+export function ensureMovementAmountIsNotZero(movement: BaseMovement): void {
+  if (movement.amount.equals(zeroValue())) {
+    throw new MovementError('error.movement.amount_zero');
   }
 }
 
 export function ensureMovementAmountMatchesParticipantAmounts(movement: Movement, participantMovements: ParticipantMovement[]): void {
   const totalAmount = participantMovements.reduce((sum, pm) => sum.add(pm.amount), newPrice(0));
   if (!movement.amount.equals(totalAmount)) {
-      throw new MovementError('The movement amount must match the sum of all participants\' amounts.');
+      throw new MovementError('error.movement.amount_mismatch');
   }
 }
 
 export function ensureSharesSumToZero(participantShareByParticipantId: ParticipantShareByParticipantId): void {
   const totalAmount = Array.from(participantShareByParticipantId.values()).reduce((sum, share) => sum.add(share),  newPrice(0));
   if (!totalAmount.equals(zeroValue())) {
-      throw new MovementError('The sum of shares must equal zero');
+      throw new MovementError('error.movement.shares_not_zero');
   }
 }
 

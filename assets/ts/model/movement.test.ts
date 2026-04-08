@@ -1,10 +1,11 @@
 import { Price } from './price';
-import { Movement, ParticipantMovement, ParticipantShareByParticipantId, DebitCreditMap, MovementType, isTransferMovement } from './movement';
+import { Movement, ParticipantMovement, ParticipantShareByParticipantId, DebitCreditMap, MovementType, MovementError, isTransferMovement } from './movement';
 import {
     buildParticipantsExpenseShare,
     buildParticipantsTransferShare,
     buildParticipantTransferMovements,
     ensureMovementAmountMatchesParticipantAmounts,
+    ensureMovementAmountIsNotZero,
     ensureSharesSumToZero,
     buildDebitCreditMap,
     sumDebitCreditMaps,
@@ -655,6 +656,45 @@ describe('simplifyBalance - limitación inherente (NP-hard)', () => {
         // El resultado NO es óptimo: el algoritmo devuelve las 4 deudas originales sin cambios
         expect(areDebitCreditMapsEqual(result, optimal)).toBe(false);
         expect(areDebitCreditMapsEqual(result, input)).toBe(true);
+    });
+});
+
+describe('ensureMovementAmountIsNotZero', () => {
+    it('should throw MovementError when movement amount is zero', () => {
+        const movement: Movement = {
+            id: 1,
+            type: MovementType.expense,
+            amount: newPrice(0),
+            createdAt: 0,
+            concept: "Test",
+            groupId: 1
+        };
+        let threw = false;
+        try {
+            ensureMovementAmountIsNotZero(movement);
+        } catch (error) {
+            threw = true;
+            expect(error instanceof MovementError).toBe(true);
+        }
+        expect(threw).toBe(true);
+    });
+
+    it('should not throw when movement amount is greater than zero', () => {
+        const movement: Movement = {
+            id: 1,
+            type: MovementType.expense,
+            amount: newPrice(1000),
+            createdAt: 0,
+            concept: "Test",
+            groupId: 1
+        };
+        let threw = false;
+        try {
+            ensureMovementAmountIsNotZero(movement);
+        } catch (error) {
+            threw = true;
+        }
+        expect(threw).toBe(false);
     });
 });
 
