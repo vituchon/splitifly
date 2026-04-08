@@ -1,5 +1,5 @@
 import { Group, Participant as ModelParticipant} from '../group';
-import { Movement as ModelMovement, TransferMovement as ModelTransferMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, ensureMovementAmountMatchesParticipantAmounts, buildParticipantsExpenseShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare, MovementType, buildParticipantTransferMovements, simplifyBalance} from '../movement';
+import { Movement as ModelMovement, TransferMovement as ModelTransferMovement, ParticipantMovement as ModelParticipantMovement, DebitCreditMap, ParticipantShareByParticipantId, MovementError, ensureMovementAmountMatchesParticipantAmounts, ensureMovementAmountIsNotZero, buildParticipantsExpenseShare, ensureSharesSumToZero, buildDebitCreditMap, sumDebitCreditMaps, sumParticipantShares, isTransferMovement, buildParticipantsTransferShare, MovementType, buildParticipantTransferMovements, simplifyBalance, BaseMovement} from '../movement';
 import { Price } from '../price';
 import { EntitiesRepository, Collection } from '../../repositories/common';
 import { ParticipantsRepository, ParticipantsMemoryRepository } from '../../repositories/participants_memory_storage';
@@ -107,12 +107,13 @@ export interface ExpenseMovement {
 }
 
 export async function addExpenseMovement(expenseMovement: ExpenseMovement): Promise<[ModelMovement, ModelParticipantMovement[]]> {
+
     await groupsRepository.getById(expenseMovement.groupId);
 
     for (const participantMovement of expenseMovement.participantMovements) {
         const participant = await participantsRepository.getById(participantMovement.participantId);
         if (participant.groupId !== expenseMovement.groupId) {
-            throw new Error(`Participant(id='${participant.id}') doesn't belong to movement's group(id='${expenseMovement.groupId}')`);
+            throw new MovementError('error.movement.participant_wrong_group', `Participant(id='${participant.id}') doesn't belong to movement's group(id='${expenseMovement.groupId}')`);
         }
     }
 
@@ -124,6 +125,7 @@ export async function addExpenseMovement(expenseMovement: ExpenseMovement): Prom
         createdAt: Math.floor(Date.now() / 1000),
         concept: expenseMovement.concept
     };
+    ensureMovementAmountIsNotZero(m);
 
     const savedMovement = await movementsRepository.save(m);
 
@@ -163,7 +165,7 @@ export async function addTransferMovement(transferMovement: TransferMovement): P
       fromParticipantId: transferMovement.fromParticipantId,
       toParticipantId: transferMovement.toParticipantId,
   };
-
+  ensureMovementAmountIsNotZero(m);
   const savedMovement = await movementsRepository.save(m);
 
   const pms: ModelParticipantMovement[] = [];
