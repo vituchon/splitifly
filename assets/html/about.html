@@ -152,14 +152,45 @@
     background: #eee;
   }
 
-  .about-github {
+  .about-github-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6em;
     text-decoration: none;
-    color: #1565c0;
-    font-weight: 600;
+    margin: 1.2em 0 0.5em;
+    transition: transform 0.2s ease;
   }
 
-  .about-github:hover {
-    text-decoration: underline;
+  .about-github-link:hover {
+    transform: translateY(-2px);
+  }
+
+  .about-github-logo {
+    width: 180px;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .about-github-link:hover .about-github-logo {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+
+  .about-github-text {
+    font-size: 1em;
+    font-weight: 600;
+    color: #1565c0;
+    padding: 0.5em 1.2em;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 20px;
+    transition: background 0.2s ease;
+  }
+
+  .about-github-link:hover .about-github-text {
+    background: #bbdefb;
   }
 
   .data-section {
@@ -306,7 +337,10 @@
       </div>
     </section>
 
-    <h2><a target="_blank" href="https://github.com/vituchon/splitifly" class="about-github">Código@github  <img style="vertical-align: middle; width: 256px;" src="/assets/images/splitifly_logo_2.png"></a></h2>
+    <a target="_blank" href="https://github.com/vituchon/splitifly" class="about-github-link">
+      <img class="about-github-logo" src="/assets/images/splitifly_logo_2.png" alt="Splitifly logo">
+      <span class="about-github-text">📂 Ver el código en GitHub</span>
+    </a>
     <button class="about-close-btn" onclick="document.getElementById('about-dialog').close()">Cerrar</button>
   </div>
 </body>
