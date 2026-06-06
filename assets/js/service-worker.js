@@ -10,14 +10,19 @@ const putInCache = async (request, response) => {
 };
 
 const cacheFirst = async ({ request, preloadResponsePromise }) => {
+  const handledPreloadResponsePromise = preloadResponsePromise.catch((err) => {
+    if (err?.name === 'AbortError' || err?.message?.includes('cancelled') || err?.message?.includes('canceled')) {
+      return;   // cancelación esperada por cache hit, ignorar
+    }
+    console.error('Preload failed:', err);
+  });
   // First try to get the resource from the cache
   const responseFromCache = await caches.match(request);
   if (responseFromCache) {
     return responseFromCache;
   }
-
   // Next try to use the preloaded response, if it's there
-  const preloadResponse = await preloadResponsePromise;
+  const preloadResponse = await handledPreloadResponsePromise;
   if (preloadResponse) {
     if (preloadResponse.type === 'opaqueredirect' || preloadResponse.redirected) {
       // No se puede usar una respuesta redirigida con respondWith() para navigation requests.
