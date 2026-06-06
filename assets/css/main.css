@@ -325,13 +325,6 @@ input, select {
   flex-direction: column;
 }
 
-.cat-background {
-  background: url('/assets/images/catty.jpg') no-repeat center center;
-  background-size: cover;
-  color: white;
-  font-size: 1.25em;
-}
-
 .remove-movement-btn {
   cursor: pointer;
   background: transparent;
