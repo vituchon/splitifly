@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1635198131284554" crossorigin="anonymous"></script>
   <title>Acerca de</title>
+  <meta name="description" content="Splitifly es una app web para dividir gastos en grupo de forma simple: calcula automáticamente cuánto debe cada participante y muestra los pagos necesarios para saldar las cuentas.">
   <style>
 
   #about-dialog section {
@@ -152,14 +152,45 @@
     background: #eee;
   }
 
-  .about-github {
+  .about-github-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6em;
     text-decoration: none;
-    color: #1565c0;
-    font-weight: 600;
+    margin: 1.2em 0 0.5em;
+    transition: transform 0.2s ease;
   }
 
-  .about-github:hover {
-    text-decoration: underline;
+  .about-github-link:hover {
+    transform: translateY(-2px);
+  }
+
+  .about-github-logo {
+    width: 180px;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .about-github-link:hover .about-github-logo {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+
+  .about-github-text {
+    font-size: 1em;
+    font-weight: 600;
+    color: #1565c0;
+    padding: 0.5em 1.2em;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 20px;
+    transition: background 0.2s ease;
+  }
+
+  .about-github-link:hover .about-github-text {
+    background: #bbdefb;
   }
 
   .data-section {
@@ -168,7 +199,8 @@
     margin: 0.5em auto;
   }
 
-  .data-section h3 {
+  .data-section h3,
+  #help h3 {
     text-align: center;
     color: #1565c0;
     margin-bottom: 0.3em;
@@ -246,7 +278,7 @@
 </head>
 <body id="about">
   <div class="vertical-center">
-    <h2 class="about-title">Acerca de Splitifly 💸🤝<br/><span>Oficial vitu cash app mobile friendry</span></h2>
+    <h2 class="about-title">Acerca de Splitifly 💸🤝<br/><span>Oficial vitu cash app mobile friendly</span></h2>
     <div id="logo-container">
       <div class="square up"></div>
       <div class="square left"></div>
@@ -262,30 +294,26 @@
         💡 <strong>Splitifly</strong> nació del seno de esa necesidad: <strong>hacer las cuentas</strong>.
       </div>
       <div class="about-feature">
-        🏆 <strong>Chau chau a toda la burocracia papelística</strong>: esto organiza y hace todo por vos.
+        🏆 <strong>Chau chau a toda la burocracia de papeles</strong>: esto organiza y hace todo por vos.
       </div>
       <div class="about-feature">
         🚀 <strong>Calculá en nanosegundos</strong>: gracias al poder de cómputo de los dispositivos de vanguardia
       </div>
-      <p style="margin-top: 1em;">
-        <a href="#" class="about-help-link" onclick="document.getElementById('help').style.display = 'block';this.style.display = 'none';">Todo muy lindo vitu... pero ¿cómo carajo se usa?</a>
-      </p>
     </section>
-    <section id="help" style="display: none;">
-      <p>Seguí estos 👣👣:
-        <ol>
-          <li>Agrega un grupo con el botón <b>+</b> de abajo a la derecha</li>
-          <li>➕👥 Agrega participantes con el botón de agregar participante.<br/>Necesitas <b>dos</b> participantes al menos para agregar movimientos</li>
-          <li>➕💰 Agrega gastos con el botón de agregar movimiento (próximamente se incluirán transferencias entre participantes)</li>
-          <li>🧮📊 Calculá el balance final y la matriz de deudas para ver quién le debe a quién y cuánto.</li>
-        </ol>
-      </p>
+    <section id="help">
+      <h3>¿Cómo se usa?</h3>
+      <ol>
+        <li>Agrega un grupo con el botón <b>+</b> de abajo a la derecha</li>
+        <li>➕👥 Agrega participantes con el botón de agregar participante.<br/>Necesitas <b>dos</b> participantes al menos para agregar movimientos</li>
+        <li>➕💰 Agrega gastos con el botón de agregar movimiento</li>
+        <li>🧮📊 Calculá el balance final y la matriz de deudas para ver quién le debe a quién y cuánto.</li>
+      </ol>
       <p>
-        👁️⚠️🤏🏿 Little disclaimership: Esta app usa el <a href="https://developer.mozilla.org/es/docs/Web/API/Window/localStorage">local storage</a> del navegador como subsistema de persistencia subyacente. Las bonbades del mismo no permiten que se registren ad infinitum datos, así que ojota. Mas o menos se guardan hasta 5MB, lo que debería alcanzar para dos o tres grupos. <b>Si borras los datos del navegador (historial, cookies,  datos cacheados, etc.) lo más probable es que se pierdan los datos que guarda esta app.</b>
+        👁️⚠️ Pequeña aclaración: Esta app usa el <a href="https://developer.mozilla.org/es/docs/Web/API/Window/localStorage">local storage</a> del navegador como sistema de almacenamiento. Las bondades del mismo no permiten que se registren ad infinitum datos, así que ojo. Más o menos se guardan hasta 5MB, lo que debería alcanzar para dos o tres grupos. <b>Si borras los datos del navegador (historial, cookies, datos cacheados, etc.) lo más probable es que se pierdan los datos que guarda esta app.</b>
       </p>
     </section>
     <section class="data-section">
-      <h3>📦 Datos</h3>
+      <h3>Datos</h3>
       <div class="data-btn-row">
         <button id="export-data-btn" class="data-btn data-btn-export">Exportar datos</button>
         <button id="import-data-btn" class="data-btn data-btn-import">Importar datos</button>
@@ -307,7 +335,10 @@
       </div>
     </section>
 
-    <h2><a target="_blank" href="https://github.com/vituchon/splitifly" class="about-github">Código@github  <img style="vertical-align: middle;" src="/assets/images/worker.jpeg"></a></h2>
+    <a target="_blank" href="https://github.com/vituchon/splitifly" class="about-github-link">
+      <img class="about-github-logo" src="/assets/images/splitifly_logo_2.png" alt="Splitifly logo">
+      <span class="about-github-text">📂 Ver el código en GitHub</span>
+    </a>
     <button class="about-close-btn" onclick="document.getElementById('about-dialog').close()">Cerrar</button>
   </div>
 </body>

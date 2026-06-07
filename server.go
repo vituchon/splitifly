@@ -65,6 +65,9 @@ func buildRouter() *mux.Router {
 
 	// Ruta raíz para el index.html
 	router.HandleFunc("/", serveRoot).Methods("GET")
+	// Ruta standalone para el about (crawleable por bots de búsqueda y AdSense).
+	// En la app se sigue cargando como modal vía fetch desde el index.
+	router.HandleFunc("/about", serveAbout).Methods("GET")
 	// El service worker pre-cachea "/assets/html/index.html" (la ruta real del archivo),
 	// pero la app sirve el index desde "/" via serveRoot. Sin esta ruta, cuando el SW
 	// pide /assets/html/index.html al server para cachearla, el file server la devuelve
@@ -106,6 +109,16 @@ func NoMatchingHandler(response http.ResponseWriter, request *http.Request) {
 
 func serveRoot(response http.ResponseWriter, request *http.Request) {
 	t, err := template.ParseFiles("./assets/html/index.html")
+	if err != nil {
+		log.Printf("Error while parsing template : %v", err)
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	t.Execute(response, nil)
+}
+
+func serveAbout(response http.ResponseWriter, request *http.Request) {
+	t, err := template.ParseFiles("./assets/html/about.html")
 	if err != nil {
 		log.Printf("Error while parsing template : %v", err)
 		response.WriteHeader(http.StatusInternalServerError)

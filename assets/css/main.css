@@ -80,6 +80,7 @@ input, select {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   transition: transform 0.2s, box-shadow 0.2s;
   padding: 0;
+  text-decoration: none;
 }
 
 #about-button:hover {
@@ -323,13 +324,6 @@ input, select {
 .vertical-layout {
   display: flex;
   flex-direction: column;
-}
-
-.cat-background {
-  background: url('/assets/images/catty.jpg') no-repeat center center;
-  background-size: cover;
-  color: white;
-  font-size: 1.25em;
 }
 
 .remove-movement-btn {
