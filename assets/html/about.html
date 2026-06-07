@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1635198131284554" crossorigin="anonymous"></script>
   <title>Acerca de</title>
+  <meta name="description" content="Splitifly es una app web para dividir gastos en grupo de forma simple: calcula automáticamente cuánto debe cada participante y muestra los pagos necesarios para saldar las cuentas.">
   <style>
 
   #about-dialog section {
@@ -199,7 +199,8 @@
     margin: 0.5em auto;
   }
 
-  .data-section h3 {
+  .data-section h3,
+  #help h3 {
     text-align: center;
     color: #1565c0;
     margin-bottom: 0.3em;
@@ -298,16 +299,13 @@
       <div class="about-feature">
         🚀 <strong>Calculá en nanosegundos</strong>: gracias al poder de cómputo de los dispositivos de vanguardia
       </div>
-      <p style="margin-top: 1em;">
-        <a href="#" class="about-help-link" onclick="document.getElementById('help').style.display = 'block';this.style.display = 'none';">Todo muy lindo vitu... pero ¿cómo se usa?</a>
-      </p>
     </section>
-    <section id="help" style="display: none;">
-      <p>Seguí estos 👣👣:</p>
+    <section id="help">
+      <h3>¿Cómo se usa?</h3>
       <ol>
         <li>Agrega un grupo con el botón <b>+</b> de abajo a la derecha</li>
         <li>➕👥 Agrega participantes con el botón de agregar participante.<br/>Necesitas <b>dos</b> participantes al menos para agregar movimientos</li>
-        <li>➕💰 Agrega gastos con el botón de agregar movimiento (próximamente se incluirán transferencias entre participantes)</li>
+        <li>➕💰 Agrega gastos con el botón de agregar movimiento</li>
         <li>🧮📊 Calculá el balance final y la matriz de deudas para ver quién le debe a quién y cuánto.</li>
       </ol>
       <p>
@@ -315,7 +313,7 @@
       </p>
     </section>
     <section class="data-section">
-      <h3>📦 Datos</h3>
+      <h3>Datos</h3>
       <div class="data-btn-row">
         <button id="export-data-btn" class="data-btn data-btn-export">Exportar datos</button>
         <button id="import-data-btn" class="data-btn data-btn-import">Importar datos</button>

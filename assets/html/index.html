@@ -16,7 +16,7 @@
     </head>
     <body>
       <div id="about-button-container">
-        <button id="about-button">?</button>
+        <a id="about-button" href="/about">?</a>
       </div>
       <dialog id="about-dialog"></dialog>
       <script>
@@ -24,7 +24,8 @@
           const aboutDialog = document.getElementById('about-dialog');
           const openAboutDialogButton = document.getElementById('about-button');
 
-          openAboutDialogButton.addEventListener('click', async () => {
+          openAboutDialogButton.addEventListener('click', async (e) => {
+            e.preventDefault();
             try {
 
               const response = await fetch('/assets/html/about.html');
